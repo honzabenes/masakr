@@ -6,9 +6,9 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function Navbar() {
+export default function StudentHeader() {
 	return (
-		<nav className="w-full border-b mb-2 fixed z-50 bg-card">
+		<nav className="w-full border-b fixed z-50 bg-card">
 			<div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4 sm:px-6">
 				
 				{/* Levá část: Logo / Hlavní nadpis */}

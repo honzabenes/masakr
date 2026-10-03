@@ -1,4 +1,4 @@
-import ChildHeader from "@/components/layout/ChildHeader";
+import StudentHeader from "@/components/layout/StudentHeader";
 import React from "react";
 
 export default function StudentLayout({
@@ -8,8 +8,8 @@ export default function StudentLayout({
 }) {
   return (
     <div className="min-h-screen bg-muted/20">
-      <ChildHeader />
-      <main className="p-4">{children}</main>
+      <StudentHeader />
+      <main>{children}</main>
     </div>
   );
 }

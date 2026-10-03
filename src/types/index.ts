@@ -1,5 +1,5 @@
-export type UserRole = "kid" | "admin";
-export type SenderRole = "kid" | "ai" | "admin";
+export type UserRole = "student" | "admin";
+export type SenderRole = "student" | "ai" | "admin";
 export type ConversationStatus = "in_progress" | "submitted" | "graded";
 
 export interface Message {
