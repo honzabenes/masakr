@@ -10,19 +10,19 @@ export default function StudentDashboard() {
     {
       id: String(Math.random()),
       title: "Úloha 0104",
-      status: "unfinished",
+      status: "in_process",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
       id: String(Math.random()),
       title: "Úloha 0103",
-      status: "submited",
+      status: "submitted",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
       id: String(Math.random()),
       title: "Úloha 0102",
-      status: "submited",
+      status: "submitted",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
@@ -34,19 +34,19 @@ export default function StudentDashboard() {
     {
       id: String(Math.random()),
       title: "Úloha 0102",
-      status: "unfinished",
+      status: "in_process",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
       id: String(Math.random()),
       title: "Úloha 0102",
-      status: "unfinished",
+      status: "in_process",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
       id: String(Math.random()),
       title: "Úloha 0102",
-      status: "unfinished",
+      status: "in_process",
       lastEditDate: new Date(2025, 0, 17),
     },
   ]);
