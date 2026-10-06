@@ -1,23 +1,42 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { Send, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ConversationStatus } from "@/types";
 
 export interface ChatInputAreaProps {
   status: ConversationStatus;
+  input: string;
+  handleInputChange: (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+  ) => void;
+  handleSubmit: (e?: React.SyntheticEvent<HTMLFormElement>) => void;
 }
 
-export default function ChatInputArea({ status }: ChatInputAreaProps) {
-  const [inputValue, setInputValue] = useState("");
+export default function ChatInputArea({
+  status,
+  input,
+  handleInputChange,
+  handleSubmit,
+}: ChatInputAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInputValue(e.target.value);
+    handleInputChange(e);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (input.trim()) {
+        const form = e.currentTarget.form;
+        if (form) form.requestSubmit();
+      }
     }
   };
 
@@ -29,11 +48,15 @@ export default function ChatInputArea({ status }: ChatInputAreaProps) {
           {status === "submitted" ? "čeká na hodnocení." : "ohodnocen."}
         </div>
       ) : (
-        <div className="flex flex-col w-full bg-muted/40 border border-border rounded-2xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary/80 transition-shadow">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col w-full bg-muted/40 border border-border rounded-2xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary/80 transition-shadow"
+        >
           <textarea
             ref={textareaRef}
-            value={inputValue}
+            value={input}
             onChange={handleInput}
+            onKeyDown={handleKeyDown}
             rows={1}
             placeholder="Napsat zprávu..."
             className="w-full resize-none bg-transparent border-0 focus:outline-none focus:ring-0 text-[16px] md:text-base px-2 py-1 max-h-32 md:max-h-48 overflow-y-auto"
@@ -55,13 +78,14 @@ export default function ChatInputArea({ status }: ChatInputAreaProps) {
 
             {/* SEND BUTTON */}
             <Button
-              disabled={!inputValue.trim()}
+              type="submit"
+              disabled={!input.trim()}
               className="h-10 w-10 md:h-12 md:w-12 rounded-full shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Send className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
             </Button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   );
