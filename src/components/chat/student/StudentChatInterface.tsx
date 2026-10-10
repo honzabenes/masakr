@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 
@@ -21,6 +21,7 @@ export default function StudentChatInterface({
   status,
 }: StudentChatInterfaceProps) {
   const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
     messages,
@@ -32,6 +33,10 @@ export default function StudentChatInterface({
       body: { data: { taskTitle, solution } },
     }),
   });
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const isLoading = chatStatus === "submitted" || chatStatus === "streaming";
   const isError = chatStatus === "error";
@@ -92,6 +97,8 @@ export default function StudentChatInterface({
               Došlo k chybě při komunikaci s AI.
             </div>
           )}
+          
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
