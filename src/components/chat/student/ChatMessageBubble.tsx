@@ -12,7 +12,7 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
 
   return (
     <div
-      className={`flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] ${
+      className={`flex md:gap-3 max-w-[90%] md:max-w-[85%] ${
         isStudent
           ? "self-end flex-col items-end md:flex-row-reverse md:items-start"
           : "self-start flex-col items-start md:flex-row md:items-start"
@@ -37,11 +37,11 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
 
       {/* MESSAGE BUBBLE */}
       <div
-        className={`flex flex-col space-y-2 p-3 md:p-4 text-sm md:text-base leading-relaxed shadow-sm ${
+        className={`flex flex-col space-y-2 p-3 md:p-4 text-sm md:text-base leading-relaxed ${
           isStudent
             ? "bg-primary text-primary-foreground rounded-lg md:rounded-tr-sm"
             : isAi
-              ? "bg-card border border-border text-card-foreground rounded-lg md:rounded-tl-sm"
+              ? "bg-card border-border text-card-foreground rounded-lg md:rounded-tl-sm"
               : "bg-orange-50 border-2 border-orange-400 text-orange-950 rounded-lg md:rounded-tl-sm"
         }`}
       >

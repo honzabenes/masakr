@@ -41,23 +41,25 @@ export default function StudentChatInterface({
   const isLoading = chatStatus === "submitted" || chatStatus === "streaming";
   const isError = chatStatus === "error";
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setInput(e.target.value);
-  };
+  const handleSubmit = (text: string, image: string | null) => {
+    const parts: any[] = [{ type: "text", text: text }];
 
-  const handleSubmit = (e?: React.SyntheticEvent<HTMLFormElement>) => {
-    e?.preventDefault();
-    if (!input.trim()) return;
+    if (image) {
+      const match = image.match(/^data:(image\/[a-zA-Z0-9]+);base64,(.+)$/);
+      if (match) {
+        parts.push({ 
+          type: "file", 
+          mediaType: match[1], 
+          data: match[2] 
+        });
+      }
+    }
 
     sendMessage({
       id: crypto.randomUUID(),
       role: "user",
-      parts: [{ type: "text", text: input }],
+      parts: parts,
     });
-
-    setInput("");
   };
 
   return (
@@ -71,11 +73,25 @@ export default function StudentChatInterface({
               .filter((part) => part.type === "text")
               .map((part) => ("text" in part ? part.text : ""))
               .join("\n");
+              
+            const filePart = msg.parts.find(
+              (part) => part.type === "file" && part.mediaType?.startsWith("image/")
+            );
+
+            let imageUrl: string | undefined = undefined;
+            if (filePart) {
+              if ("data" in filePart && typeof filePart.data === "string") {
+                imageUrl = `data:${(filePart as any).mediaType || 'image/jpeg'};base64,${filePart.data}`;
+              } else if ("url" in filePart && typeof filePart.url === "string") {
+                imageUrl = filePart.url;
+              }
+            }
 
             const mappedMessage: Message = {
               id: msg.id,
               content: textContent,
               sender_type: msg.role === "user" ? "student" : "ai",
+              image_url: imageUrl,
               created_at: new Date().toISOString(),
             };
 
@@ -105,7 +121,7 @@ export default function StudentChatInterface({
       <ChatInputArea
         status={status}
         input={input}
-        handleInputChange={handleInputChange}
+        setInput={setInput}
         handleSubmit={handleSubmit}
       />
     </main>
