@@ -52,8 +52,13 @@ export default function ChatInputArea({
       return;
     }
 
+    const copiedFiles = new DataTransfer();
+    for (const selectedFile of fileList) {
+      copiedFiles.items.add(selectedFile);
+    }
+
     if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setFiles(fileList);
+    setFiles(copiedFiles.files);
     setPreviewUrl(URL.createObjectURL(file));
     e.target.value = "";
   };
@@ -70,10 +75,14 @@ export default function ChatInputArea({
     e.preventDefault();
     if ((!input.trim() && !files) || isSubmitting) return;
 
-    await onSubmit(input.trim(), files ?? undefined);
-    clearImage();
+    const text = input.trim();
+    const selectedFiles = files ?? undefined;
+
     onInputChange("");
+    clearImage();
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+
+    await onSubmit(text, selectedFiles);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
