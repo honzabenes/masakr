@@ -8,22 +8,26 @@ import type { ConversationStatus } from "@/types";
 export interface ChatInputAreaProps {
   status: ConversationStatus;
   input: string;
-  setInput: (value: string) => void;
-  handleSubmit: (text: string, imageBase64: string | null) => void;
+  onInputChange: (value: string) => void;
+  onSubmit: (text: string, files?: FileList) => Promise<void>;
+  isSubmitting: boolean;
 }
 
 export default function ChatInputArea({
   status,
   input,
-  setInput,
-  handleSubmit,
+  onInputChange,
+  onSubmit,
+  isSubmitting,
 }: ChatInputAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value);
+    onInputChange(e.target.value);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -31,8 +35,10 @@ export default function ChatInputArea({
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    const file = fileList[0];
 
     if (!file.type.startsWith("image/")) {
       alert("Lze nahrávat pouze obrázky.");
@@ -46,33 +52,35 @@ export default function ChatInputArea({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (typeof event.target?.result === "string") {
-        setSelectedImage(event.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
-
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setFiles(fileList);
+    setPreviewUrl(URL.createObjectURL(file));
     e.target.value = "";
   };
 
-  const submitForm = () => {
-    if (!input.trim() && !selectedImage) return;
-    
-    handleSubmit(input, selectedImage);
-    
-    setInput("");
-    setSelectedImage(null);
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+  const clearImage = () => {
+    setFiles(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
     }
+    setPreviewUrl(null);
+  };
+
+  const submitForm = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if ((!input.trim() && !files) || isSubmitting) return;
+
+    await onSubmit(input.trim(), files ?? undefined);
+    clearImage();
+    onInputChange("");
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      submitForm();
+      const form = e.currentTarget.form;
+      form?.requestSubmit();
     }
   };
 
@@ -84,20 +92,22 @@ export default function ChatInputArea({
           {status === "submitted" ? "čeká na hodnocení." : "ohodnocen."}
         </div>
       ) : (
-        <div className="flex flex-col w-full bg-muted/40 border border-border rounded-2xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary/80 transition-shadow">
-          
+        <form
+          onSubmit={submitForm}
+          className="flex flex-col w-full bg-muted/40 border border-border rounded-2xl p-2 md:p-3 focus-within:ring-1 focus-within:ring-primary/80 transition-shadow"
+        >
           {/* IMAGE PREVIEW */}
-          {selectedImage && (
+          {previewUrl && (
             <div className="mt-2 mb-2 px-2">
               <div className="relative inline-block">
                 <img
-                  src={selectedImage}
+                  src={previewUrl}
                   alt="Náhled"
                   className="h-20 w-auto rounded-lg object-cover border border-border"
                 />
                 <button
                   type="button"
-                  onClick={() => setSelectedImage(null)}
+                  onClick={clearImage}
                   className="absolute -top-2 -right-2 rounded-full p-1 bg-gray-100 border hover:bg-gray-200 transition-colors"
                 >
                   <X className="w-3 h-3 text-gray-700" />
@@ -117,12 +127,11 @@ export default function ChatInputArea({
           />
 
           <div className="flex items-center justify-between mt-2">
-            {/* LOAD IMAGE BUTTON */}
             <div>
-              <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
                 ref={fileInputRef}
                 onChange={handleImageSelect}
               />
@@ -137,17 +146,15 @@ export default function ChatInputArea({
               </Button>
             </div>
 
-            {/* SUBMIT BUTTON */}
             <Button
-              type="button"
-              onClick={submitForm}
-              disabled={!input.trim() && !selectedImage}
+              type="submit"
+              disabled={(!input.trim() && !files) || isSubmitting}
               className="h-10 w-10 md:h-12 md:w-12 rounded-full shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Send className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />
             </Button>
           </div>
-        </div>
+        </form>
       )}
     </div>
   );

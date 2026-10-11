@@ -13,7 +13,8 @@ export async function POST(req: Request) {
     const { messages, data }: { messages: UIMessage[]; data?: any } = body;
 
     const taskTitle = "Sportovní kroužky ve třídě";
-    const taskDescription = "Ve třídě je 24 žáků. Třetina z nich hraje fotbal. Čtvrtina ze zbytku hraje florbal. Kolik žáků nehraje ani jeden z těchto sportů?";
+    const taskDescription =
+      "Ve třídě je 24 žáků. Třetina z nich hraje fotbal. Čtvrtina ze zbytku hraje florbal. Kolik žáků nehraje ani jeden z těchto sportů?";
     const solution = "12";
 
     const SYSTEM_PROMPT = `Jsi přátelský, trpělivý a povzbuzující AI tutor. Pomáháš žákovi 5. třídy základní školy s přípravou na přijímací zkoušky (CERMAT).
