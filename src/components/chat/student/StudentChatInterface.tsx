@@ -11,27 +11,40 @@ import type { ConversationStatus, Message } from "@/types";
 
 export interface StudentChatInterfaceProps {
   taskTitle: string;
+  taskDescription: string;
   solution: string;
   status: ConversationStatus;
 }
 
 export default function StudentChatInterface({
   taskTitle,
+  taskDescription,
   solution,
   status,
 }: StudentChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
+  const initialTaskMessage: Message = {
+    id: "initial-task-msg",
+    content: taskDescription,
+    sender_type: "ai",
+    created_at: new Date().toISOString(),
+  };
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { data: { taskTitle, solution } },
+        body: { data: { taskTitle, taskDescription, solution } },
       }),
-    [solution, taskTitle],
+    [solution, taskDescription, taskTitle],
   );
 
-  const { messages, sendMessage, status: chatStatus, error } = useChat({
+  const {
+    messages,
+    sendMessage,
+    status: chatStatus,
+    error,
+  } = useChat({
     transport,
   });
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
@@ -42,10 +55,12 @@ export default function StudentChatInterface({
 
   return (
     <main className="flex flex-col h-full w-full max-w-4xl rounded-md overflow-hidden bg-card text-card-foreground">
-      <ChatActionBar status={status} />
+      <ChatActionBar status={status} taskTitle={taskTitle} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6 bg-background">
         <div className="flex flex-col space-y-6">
+          <ChatMessageBubble message={initialTaskMessage} />
+
           {messages.map((msg: UIMessage) => {
             const text = msg.parts
               .filter(
