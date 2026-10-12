@@ -18,7 +18,6 @@ const taskStatusConfig = {
 // --- COMPONENT ---
 export default function TaskTableItem({
   title,
-  id,
   status,
   lastEditDate,
 }: TaskTableItemProps) {

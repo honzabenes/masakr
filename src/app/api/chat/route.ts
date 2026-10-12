@@ -9,8 +9,7 @@ import { openai } from "@ai-sdk/openai";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { messages, data }: { messages: UIMessage[]; data?: any } = body;
+    const { messages } = (await req.json()) as { messages: UIMessage[] };
 
     const taskTitle = "Sportovní kroužky ve třídě";
     const taskDescription =

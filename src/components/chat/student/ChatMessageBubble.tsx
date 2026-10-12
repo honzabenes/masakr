@@ -1,4 +1,5 @@
 import { Bot, GraduationCap } from "lucide-react";
+import Image from "next/image";
 import type { Message } from "@/types";
 
 export interface ChatMessageBubbleProps {
@@ -54,9 +55,12 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
         <span>{message.content}</span>
 
         {message.image_url && (
-          <img
+          <Image
             src={message.image_url}
             alt="Obrázek k řešení"
+            width={600}
+            height={400}
+            unoptimized
             className="mt-2 md:mt-3 rounded-md border border-border/50 max-h-48 md:max-h-64 object-cover"
           />
         )}

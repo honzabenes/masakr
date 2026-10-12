@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Send, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ConversationStatus } from "@/types";
@@ -109,9 +110,12 @@ export default function ChatInputArea({
           {previewUrl && (
             <div className="mt-2 mb-2 px-2">
               <div className="relative inline-block">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Náhled"
+                  width={80}
+                  height={80}
+                  unoptimized
                   className="h-20 w-auto rounded-lg object-cover border border-border"
                 />
                 <button
