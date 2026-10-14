@@ -26,7 +26,9 @@ export default function ChatActionBar({
 
       {taskTitle && (
         <div className="flex-1 min-w-0 px-2 text-center">
-          <h2 className="truncate font-semibold text-gray-700">{taskTitle}</h2>
+          <h2 className="truncate text-sm sm:text-base font-semibold text-gray-700">
+            {taskTitle}
+          </h2>
         </div>
       )}
 
