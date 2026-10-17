@@ -98,7 +98,7 @@ export default function ChatInputArea({
   const isActive = status === "not_started" || status === "in_process";
 
   return (
-    <div className="p-3 md:p-4 pt-0 md:pt-0 bg-card shrink-0">
+    <div className="p-2 bg-card shrink-0">
       {!isActive ? (
         <div className="p-4 md:p-6 text-center text-sm md:text-base text-muted-foreground bg-muted/50 rounded-2xl border border-dashed border-border/60">
           Úkol byl odevzdán a{" "}

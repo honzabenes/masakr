@@ -19,7 +19,7 @@ export default function ChatActionBar({
   const isActive = status === "not_started" || status === "in_process";
 
   return (
-    <div className="flex items-center justify-between w-full pb-4 shrink-0 pt-4">
+    <div className="flex items-center justify-between w-full py-2 shrink-0">
       <Link href="/dashboard" className="shrink-0">
         <Button variant="ghost" className="px-2 sm:px-4">
           <ArrowLeft className="w-4 h-4 mr-0 sm:mr-2" />
