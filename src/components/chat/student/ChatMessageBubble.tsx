@@ -58,8 +58,8 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           <Image
             src={message.image_url}
             alt="Obrázek k řešení"
-            width={600}
-            height={400}
+            width={200}
+            height={200}
             unoptimized
             className="mt-2 md:mt-3 rounded-md border border-border/50 max-h-48 md:max-h-64 object-cover"
           />

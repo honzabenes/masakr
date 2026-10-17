@@ -62,6 +62,7 @@ export default function ChatInputArea({
     setFiles(copiedFiles.files);
     setPreviewUrl(URL.createObjectURL(file));
     e.target.value = "";
+    textareaRef.current?.focus();
   };
 
   const clearImage = () => {
