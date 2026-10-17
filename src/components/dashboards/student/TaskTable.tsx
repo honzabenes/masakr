@@ -23,6 +23,7 @@ export default function TaskTable({ tasks }: TaskListProps) {
             title={task.title}
             status={task.status}
             lastEditDate={task.lastEditDate}
+            messageCount={task.messageCount}
           ></TaskTableItem>
         ))}
       </div>

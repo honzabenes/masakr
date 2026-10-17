@@ -1,61 +1,46 @@
-"use client";
-
+import { createClient } from "@/lib/supabase/server";
 import TaskTable from "@/components/dashboards/student/TaskTable";
-import TaskTableHeader from "@/components/dashboards/student/TaskTableHeader";
-import { TaskTableItemProps } from "@/components/dashboards/student/TaskTableItem";
+import { redirect } from "next/navigation";
 
-export default function StudentDashboard() {
-  const tasks: TaskTableItemProps[] = [
-    {
-      id: "task-0104",
-      title: "Úloha 0104",
-      status: "not_started",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0103",
-      title: "Úloha 0103",
-      status: "submitted",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0102-submitted",
-      title: "Úloha 0102",
-      status: "submitted",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0102-rated",
-      title: "Úloha 0102",
-      status: "graded",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0102-in-process-1",
-      title: "Úloha 0102",
-      status: "in_process",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0102-in-process-2",
-      title: "Úloha 0102",
-      status: "in_process",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-    {
-      id: "task-0102-in-process-3",
-      title: "Úloha 0102",
-      status: "in_process",
-      lastEditDate: new Date(2025, 0, 17),
-    },
-  ];
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: tasks, error: tasksError } = await supabase
+    .from("tasks")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const { data: conversations, error: convError } = await supabase
+    .from("conversations")
+    .select("task_id, status, created_at, messages(count)")
+    .eq("student_id", user.id);
+
+  const tableData = tasks?.map((task) => {
+    const conv = conversations?.find((c) => c.task_id === task.id);
+    const msgCount = conv?.messages?.[0]?.count || 0;
+    
+    const rawDate = new Date(conv?.created_at || task.created_at);
+    const formattedDate = new Intl.DateTimeFormat("cs-CZ", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric"
+    }).format(rawDate);
+
+    return {
+      id: task.id,
+      title: task.title,
+      status: conv?.status || "not_started",
+      lastEditDate: formattedDate,
+      messageCount: msgCount,
+    };
+  }) || [];
 
   return (
-    <div className="flex flex-col items-center min-h-svh">
-      <TaskTableHeader />
-      <div className="w-full mt-12 flex items-center justify-center">
-        <TaskTable tasks={tasks}></TaskTable>
-      </div>
+    <div className="w-full h-full flex justify-center pt-24">
+      <TaskTable tasks={tableData}/>
     </div>
   );
 }

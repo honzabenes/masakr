@@ -2,12 +2,15 @@ import { Badge } from "@/components/ui/badge";
 import { ConversationStatus } from "@/types";
 import { MessageSquare } from "lucide-react";
 
+import Link from "next/link";
+
 // --- TYPES ---
 export interface TaskTableItemProps {
-  title: string;
   id: string;
+  title: string;
   status: ConversationStatus;
-  lastEditDate: Date;
+  lastEditDate: string;
+  messageCount: number;
 }
 
 const taskStatusConfig = {
@@ -19,33 +22,36 @@ const taskStatusConfig = {
 
 // --- COMPONENT ---
 export default function TaskTableItem({
+  id,
   title,
   status,
   lastEditDate,
+  messageCount
 }: TaskTableItemProps) {
   const badge = taskStatusConfig[status];
-  const messageCount = 7; // TODO: replace with actual message count when available
 
   return (
-    <div className="flex flex-col items-center gap-1 justify-between px-6 py-4 border rounded-md cursor-pointer my-4 hover:bg-accent">
-      <div className="flex w-full items-center justify-between">
-        <h3 className="font-medium">{title}</h3>
-        <span className="text-sm text-muted-foreground">
-          {lastEditDate.toLocaleDateString("cs-CZ")}
-        </span>
-      </div>
-
-      <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="text-muted-foreground h-4 w-4" />
+    <Link href={`/task/${id}`} className="block">
+      <div className="flex flex-col items-center gap-1 justify-between px-6 py-4 border rounded-md cursor-pointer my-4 hover:bg-accent transition-colors">
+        <div className="flex w-full items-center justify-between">
+          <h3 className="font-medium">{title}</h3>
           <span className="text-sm text-muted-foreground">
-            {messageCount} zpráv
+            {lastEditDate}
           </span>
         </div>
-        <Badge variant={badge.variant} className="rounded-sm">
-          {badge.label}
-        </Badge>
+
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="text-muted-foreground h-4 w-4" />
+            <span className="text-sm text-muted-foreground">
+              {messageCount} zpráv
+            </span>
+          </div>
+          <Badge variant={badge.variant} className="rounded-sm">
+            {badge.label}
+          </Badge>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

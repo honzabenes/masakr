@@ -10,11 +10,14 @@ export interface ChatActionBarProps {
   onSubmit?: () => void;
 }
 
+
 export default function ChatActionBar({
   status,
   taskTitle,
   onSubmit,
 }: ChatActionBarProps) {
+  const isActive = status === "not_started" || status === "in_process";
+
   return (
     <div className="flex items-center justify-between w-full pb-4 shrink-0 pt-4">
       <Link href="/dashboard" className="shrink-0">
@@ -35,12 +38,12 @@ export default function ChatActionBar({
       <Button
         variant="ghost"
         className="shrink-0 px-2 sm:px-4 text-primary hover:text-primary"
-        disabled={status !== "in_progress"}
+        disabled={!isActive}
         onClick={onSubmit}
       >
         <CheckCircle className="w-4 h-4 mr-0 sm:mr-2" />
         <span className="hidden sm:inline">
-          {status === "in_progress" ? "Odevzdat" : "Odevzdáno"}
+          {isActive ? "Odevzdat" : "Odevzdáno"}
         </span>
       </Button>
     </div>
