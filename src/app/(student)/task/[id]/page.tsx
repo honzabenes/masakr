@@ -8,7 +8,7 @@ export default function TaskPage() {
           taskTitle="Přítok a odtok"
           taskDescription="Nádrž na vodu má přítok, který prázdnou dokáže naplnit za 20 hodin. Odtok nádrže naopak plnou nádrž vypustí za 24 hodin. Nádrž je nyní naplněna ze tří čtvrtin. Za jak dlouho bude nádrž plná, bude-li současně otevřen přítok i odtok?"
           solution="SOLUTION"
-          status="in_progress"
+          status="in_process"
         />
       </div>
     </main>

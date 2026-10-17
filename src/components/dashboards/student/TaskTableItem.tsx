@@ -1,18 +1,20 @@
 import { Badge } from "@/components/ui/badge";
+import { ConversationStatus } from "@/types";
 import { MessageSquare } from "lucide-react";
 
 // --- TYPES ---
 export interface TaskTableItemProps {
   title: string;
   id: string;
-  status: "in_process" | "submitted" | "rated";
+  status: ConversationStatus;
   lastEditDate: Date;
 }
 
 const taskStatusConfig = {
-  in_process: { label: "Nedokončeno", variant: "destructive" as const },
+  not_started: { label: "Nezahájeno", variant: "destructive" as const },
+  in_process: { label: "Rozpracováno", variant: "secondary" as const },
   submitted: { label: "Odevzdáno", variant: "outline" as const },
-  rated: { label: "Ohodnoceno", variant: "default" as const },
+  graded: { label: "Ohodnoceno", variant: "default" as const },
 };
 
 // --- COMPONENT ---

@@ -9,7 +9,7 @@ export default function StudentDashboard() {
     {
       id: "task-0104",
       title: "Úloha 0104",
-      status: "in_process",
+      status: "not_started",
       lastEditDate: new Date(2025, 0, 17),
     },
     {
@@ -27,7 +27,7 @@ export default function StudentDashboard() {
     {
       id: "task-0102-rated",
       title: "Úloha 0102",
-      status: "rated",
+      status: "graded",
       lastEditDate: new Date(2025, 0, 17),
     },
     {

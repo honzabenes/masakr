@@ -1,9 +1,24 @@
-export default function HomePage() {
-  // V budoucnu pravděpodobně redirect na /login
-  return (
-    <main className="text-center">
-      <h1>Vítejte v Edu AI</h1>
-      <p>Landing page nebo redirect na přihlášení.</p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export default async function HomePage() {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: userData } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (userData?.role === "admin") {
+    redirect("/admin-dashboard");
+  } else {
+    redirect("/dashboard");
+  }
 }

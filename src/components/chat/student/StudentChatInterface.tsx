@@ -47,6 +47,7 @@ export default function StudentChatInterface({
   } = useChat({
     transport,
   });
+  
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
 
   useEffect(() => {
