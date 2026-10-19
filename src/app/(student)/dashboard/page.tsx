@@ -6,7 +6,7 @@ import { getUserConversationSummaries } from "@/lib/services/conversations";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  
+
   const user = await requireCurrentUser(supabase);
 
   const [tasks, conversations] = await Promise.all([
@@ -17,12 +17,12 @@ export default async function DashboardPage() {
   const tableData = tasks?.map((task) => {
     const conv = conversations?.find((c) => c.task_id === task.id);
     const msgCount = conv?.message_count ?? 0;
-    
+
     const rawDate = new Date(conv?.created_at || task.created_at);
     const formattedDate = new Intl.DateTimeFormat("cs-CZ", {
       day: "numeric",
       month: "numeric",
-      year: "numeric"
+      year: "numeric",
     }).format(rawDate);
 
     return {
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="w-full h-full flex justify-center pt-24">
-      <TaskTable tasks={tableData}/>
+      <TaskTable tasks={tableData} />
     </div>
   );
 }
