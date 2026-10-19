@@ -33,7 +33,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
     .from("conversations")
     .select("*")
     .eq("task_id", task.id)
-    .eq("student_id", user.id)
+    .eq("user_id", user.id)
     .single();
 
   if (!conversation) {
@@ -41,8 +41,8 @@ export default async function TaskPage({ params }: TaskPageProps) {
       .from("conversations")
       .insert({
         task_id: task.id,
-        student_id: user.id,
-        status: "in_progress" as ConversationStatus,
+        user_id: user.id,
+        status: "not_started" as ConversationStatus,
       })
       .select()
       .single();

@@ -95,7 +95,7 @@ export default function ChatInputArea({
     }
   };
 
-  const isActive = status === "not_started" || status === "in_process";
+  const isActive = status === "not_started" || status === "in_progress";
 
   return (
     <div className="p-2 bg-card shrink-0">

@@ -15,7 +15,7 @@ export interface TaskTableItemProps {
 
 const taskStatusConfig = {
   not_started: { label: "Nezahájeno", variant: "destructive" as const },
-  in_process: { label: "Rozpracováno", variant: "secondary" as const },
+  in_progress: { label: "Rozpracováno", variant: "secondary" as const },
   submitted: { label: "Odevzdáno", variant: "outline" as const },
   graded: { label: "Ohodnoceno", variant: "default" as const },
 };

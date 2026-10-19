@@ -12,15 +12,23 @@ export default async function DashboardPage() {
     .from("tasks")
     .select("*")
     .order("created_at", { ascending: false });
+  
+  if (tasksError) {
+    console.error("Error fetching tasks:", tasksError);
+  }
 
   const { data: conversations, error: convError } = await supabase
     .from("conversations")
-    .select("task_id, status, created_at, messages(count)")
-    .eq("student_id", user.id);
+    .select("task_id, status, created_at, message_count")
+    .eq("user_id", user.id);
+
+  if (convError) {
+    console.error("Error fetching conversations:", convError);
+  }
 
   const tableData = tasks?.map((task) => {
     const conv = conversations?.find((c) => c.task_id === task.id);
-    const msgCount = conv?.messages?.[0]?.count || 0;
+    const msgCount = conv?.message_count ?? 0;
     
     const rawDate = new Date(conv?.created_at || task.created_at);
     const formattedDate = new Intl.DateTimeFormat("cs-CZ", {

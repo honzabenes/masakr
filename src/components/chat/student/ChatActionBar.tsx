@@ -16,7 +16,7 @@ export default function ChatActionBar({
   taskTitle,
   onSubmit,
 }: ChatActionBarProps) {
-  const isActive = status === "not_started" || status === "in_process";
+  const isActive = status === "not_started" || status === "in_progress";
 
   return (
     <div className="flex items-center justify-between w-full py-2 shrink-0">

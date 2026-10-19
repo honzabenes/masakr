@@ -1,6 +1,6 @@
 export type UserRole = "student" | "admin";
 export type SenderRole = "student" | "ai" | "admin";
-export type ConversationStatus = "not_started" | "in_process" | "submitted" | "graded";
+export type ConversationStatus = "not_started" | "in_progress" | "submitted" | "graded";
 
 export interface Message {
   id: string;
