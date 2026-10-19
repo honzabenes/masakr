@@ -1,7 +1,7 @@
 import { requireCurrentUser } from "@/lib/services/auth";
 import { getUserRole } from "@/lib/services/users";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import React from "react";
 
 export default async function TeacherLayout({
@@ -14,7 +14,7 @@ export default async function TeacherLayout({
 
   const role = await getUserRole(supabase, user.id);
   if (role !== "teacher") {
-    redirect("/dashboard");
+    notFound();
   }
 
   return (
