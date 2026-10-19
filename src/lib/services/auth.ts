@@ -1,7 +1,8 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { redirect } from "next/navigation";
 
-type AppSupabaseClient = SupabaseClient<Database>;
+export type AppSupabaseClient = SupabaseClient<Database>;
 
 export async function getCurrentUser(
   supabase: AppSupabaseClient,
@@ -13,6 +14,18 @@ export async function getCurrentUser(
   }
 
   return data.user;
+}
+
+export async function requireCurrentUser(
+  supabase: AppSupabaseClient,
+): Promise<User> {
+  const user = await getCurrentUser(supabase);
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  return user;
 }
 
 export async function signInWithPassword(

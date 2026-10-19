@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import StudentChatInterface from "@/components/chat/student/StudentChatInterface";
-import { getCurrentUser } from "@/lib/services/auth";
+import { requireCurrentUser } from "@/lib/services/auth";
 import { getTaskById } from "@/lib/services/tasks";
 import {
   createConversation,
@@ -19,10 +19,7 @@ export default async function TaskPage({ params }: TaskPageProps) {
 
   const supabase = await createClient();
   
-  const user = await getCurrentUser(supabase);
-  if (!user) {
-    redirect("/login");
-  }
+  const user = await requireCurrentUser(supabase);
 
   const task = await getTaskById(supabase, id);
   if (!task) notFound();

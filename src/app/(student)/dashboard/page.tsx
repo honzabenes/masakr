@@ -1,15 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import TaskTable from "@/components/dashboards/student/TaskTable";
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/services/auth";
+import { requireCurrentUser } from "@/lib/services/auth";
 import { getTasks } from "@/lib/services/tasks";
 import { getUserConversationSummaries } from "@/lib/services/conversations";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   
-  const user = await getCurrentUser(supabase);
-  if (!user) redirect("/login");
+  const user = await requireCurrentUser(supabase);
 
   const [tasks, conversations] = await Promise.all([
     getTasks(supabase),
