@@ -10,7 +10,9 @@ export async function getCurrentUser(
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
-    throw new Error(`Nepodařilo se načíst přihlášeného uživatele: ${error.message}`);
+    throw new Error(
+      `Nepodařilo se načíst přihlášeného uživatele: ${error.message}`,
+    );
   }
 
   return data.user;
