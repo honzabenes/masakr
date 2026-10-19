@@ -2,6 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import {
+  signInWithPassword,
+  signOut,
+} from "@/lib/services/auth";
 
 export async function login(formData: FormData) {
   const nickname = formData.get("nickname") as string;
@@ -14,10 +18,7 @@ export async function login(formData: FormData) {
   const supabase = await createClient();
   const email = `${nickname.trim().toLowerCase()}@masakr.cz`;
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { error } = await signInWithPassword(supabase, email, password);
 
   if (error) {
     return { error: "Nesprávné jméno nebo heslo." };
@@ -29,7 +30,7 @@ export async function login(formData: FormData) {
 export async function logout() {
   const supabase = await createClient();
   
-  await supabase.auth.signOut();
+  await signOut(supabase);
   
   redirect("/login");
 }

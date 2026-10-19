@@ -1,23 +1,21 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/services/auth";
+import { getUserRole } from "@/lib/services/users";
 
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser(supabase);
 
   if (!user) {
     redirect("/login");
   }
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const role = await getUserRole(supabase, user.id);
 
-  if (userData?.role === "admin") {
-    redirect("/admin-dashboard");
+  if (role === "teacher") {
+    redirect("/teacher-dashboard");
   } else {
     redirect("/dashboard");
   }

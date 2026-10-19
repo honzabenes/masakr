@@ -1,3 +1,3 @@
-export default function AdminTasksPage() {
+export default function TeacherTasksPage() {
   return <div>Správa úkolů - Výpis všech úkolů</div>;
 }

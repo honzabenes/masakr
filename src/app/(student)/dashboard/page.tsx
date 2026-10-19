@@ -1,30 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import TaskTable from "@/components/dashboards/student/TaskTable";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/services/auth";
+import { getTasks } from "@/lib/services/tasks";
+import { getUserConversationSummaries } from "@/lib/services/conversations";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getCurrentUser(supabase);
   if (!user) redirect("/login");
 
-  const { data: tasks, error: tasksError } = await supabase
-    .from("tasks")
-    .select("*")
-    .order("created_at", { ascending: false });
-  
-  if (tasksError) {
-    console.error("Error fetching tasks:", tasksError);
-  }
-
-  const { data: conversations, error: convError } = await supabase
-    .from("conversations")
-    .select("task_id, status, created_at, message_count")
-    .eq("user_id", user.id);
-
-  if (convError) {
-    console.error("Error fetching conversations:", convError);
-  }
+  const [tasks, conversations] = await Promise.all([
+    getTasks(supabase),
+    getUserConversationSummaries(supabase, user.id),
+  ]);
 
   const tableData = tasks?.map((task) => {
     const conv = conversations?.find((c) => c.task_id === task.id);
@@ -44,7 +34,7 @@ export default async function DashboardPage() {
       lastEditDate: formattedDate,
       messageCount: msgCount,
     };
-  }) || [];
+  });
 
   return (
     <div className="w-full h-full flex justify-center pt-24">
