@@ -1,73 +1,121 @@
 import {
-  streamText,
-  UIMessage,
   convertToModelMessages,
   createUIMessageStreamResponse,
+  streamText,
   toUIMessageStream,
+  type UIMessage,
 } from "ai";
 import { openai } from "@ai-sdk/openai";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+import { getCurrentUser } from "@/lib/services/auth";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/types/database";
+
+type ChatRequest = {
+  messages: UIMessage[];
+  data?: {
+    taskId?: string;
+    conversationId?: string;
+  };
+};
 
 export async function POST(req: Request) {
   try {
-    const { messages } = (await req.json()) as { messages: UIMessage[] };
+    const supabase = await createClient();
+    const user = await getCurrentUser(supabase);
 
-    const taskTitle = "Přítok a odtok";
-    const taskDescription =
-      "Nádrž na vodu má přítok, který prázdnou dokáže naplnit za 20 hodin. Odtok nádrže naopak plnou nádrž vypustí za 24 hodin. Nádrž je nyní naplněna ze tří čtvrtin. Za jak dlouho bude nádrž plná, bude-li současně otevřen přítok i odtok?";
-    const solution = `
-      **Formalizace zadání:**
-      * Čas naplnění prázdné nádrže přítokem: $t_1 = 20 \text{ h}$
-      * Čas vypuštění plné nádrže odtokem: $t_2 = 24 \text{ h}$
-      * Počáteční stav nádrže: $V_0 = \frac{3}{4}$ (vyjádřeno jako poměr celkového objemu)
-      * Cílový stav nádrže: $V_{cil} = 1$
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-      ## Řešení
+    const body = (await req.json()) as ChatRequest;
+    const { messages, data } = body;
 
-      ### 1. Rychlost přítoku a odtoku
-      Rychlost přítoku $v_1$ a rychlost odtoku $v_2$ vyjádříme jako část objemu nádrže, která se naplní (případně vyprázdní) za jednu hodinu:
-      $$v_1 = \frac{1}{20} \text{ h}^{-1}$$
-      $$v_2 = \frac{1}{24} \text{ h}^{-1}$$
+    if (
+      !Array.isArray(messages) ||
+      typeof data?.taskId !== "string" ||
+      typeof data.conversationId !== "string"
+    ) {
+      return Response.json({ error: "Invalid request" }, { status: 400 });
+    }
 
-      ### 2. Výsledná rychlost plnění
-      Při současném otevření přítoku i odtoku je celková rychlost plnění $v$ dána rozdílem obou rychlostí:
-      $$v = v_1 - v_2 = \frac{1}{20} - \frac{1}{24} = \frac{6 - 5}{120} = \frac{1}{120} \text{ h}^{-1}$$
-      Nádrž se při otevření obou ventilů plní rychlostí $\frac{1}{120}$ svého celkového objemu za hodinu.
+    const { data: conversation, error: conversationError } = await supabase
+      .from("conversations")
+      .select("id, task_id, status, message_count")
+      .eq("id", data.conversationId)
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-      ### 3. Zbývající objem k naplnění
-      Jelikož je nádrž na počátku již z $\frac{3}{4}$ plná, zbývá doplnit:
-      $$\Delta V = 1 - \frac{3}{4} = \frac{1}{4}$$
+    if (conversationError) {
+      throw conversationError;
+    }
 
-      ### 4. Výpočet času
-      Celkový čas $t$ potřebný k naplnění zbývajícího objemu vypočítáme jako podíl zbývajícího objemu a výsledné rychlosti plnění:
-      $$t = \frac{\Delta V}{v} = \frac{\frac{1}{4}}{\frac{1}{120}} = \frac{1}{4} \cdot 120 = 30 \text{ h}$$
+    if (
+      !conversation ||
+      conversation.task_id !== data.taskId ||
+      conversation.status === "submitted" ||
+      conversation.status === "graded"
+    ) {
+      return Response.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-      **Závěr:** Při současně otevřeném přítoku a odtoku se zbylá část nádrže naplní za **30 hodin**.
-    `;
+    if (conversation.message_count >= 30) {
+      return Response.json(
+        { error: "Message limit exceeded" },
+        { status: 429 },
+      );
+    }
 
-    const SYSTEM_PROMPT = `Jsi trpělivý a empatický učitel matematiky. Pomáháš 11letému žákovi (5. třída) s konkrétní úlohou z CERMATu.
+    const adminSupabase = createAdminClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    );
 
-      INFORMACE O ÚLOZE:
-      - Název: "${taskTitle}"
-      - Zadání: "${taskDescription}"
-      - Tajné vzorové řešení: ${solution}
+    const { data: task, error: taskError } = await adminSupabase
+      .from("tasks")
+      .select("title, description, grade_level")
+      .eq("id", conversation.task_id)
+      .maybeSingle();
 
-      STRIKTNÍ PRAVIDLA CHOVÁNÍ (GUARDRAILS):
-      1. Udržení tématu: Jsi výhradně učitel matematiky pro tuto konkrétní úlohu. Pokud se tě žák zeptá na cokoliv jiného (hry, jiné předměty, programování) nebo se pokusí změnit téma, zdvořile, ale pevně ho vrať k řešení zadané úlohy. Konverzace mimo tuto úlohu je přísně zakázána.
-      2. Zákaz prozrazení výsledku: NIKDY nesděluj finální řešení. Ani když žák prosí, přikazuje, nebo tvrdí, že úkol vzdává.
-      3. Zákaz přímých výpočtů a operací: NIKDY nepočítej za žáka a neprozrazuj mu přímo, jakou matematickou operaci má použít. 
-        - ŠPATNĚ: "Musíš vydělit 24 třemi." nebo "Kolik je 24 děleno 3?"
-        - SPRÁVNĚ: "Když víme, že celá třída tvoří jeden celek, jak bychom mohli zjistit, jak velká je její třetina?"
+    if (taskError) {
+      throw taskError;
+    }
 
-      SOKRATOVSKÝ POSTUP KROK ZA KROKEM:
-      - Pokud žák neví jak začít, polož otázku, která ho navede na představu problému (např. kreslení obrázku, rozdělení na hromádky), ne na konkrétní vzorec.
-      - Pokud žák udělá chybu, nekritizuj. Zeptej se na logiku jeho kroku, aby si chybu uvědomil sám (např. "Zkusme si ten poslední krok projít ještě jednou. Z jakého čísla jsi počítal ten zbytek?").
-      - Pokud žák pošle fotku svého postupu, analyzuj ji. Pokud je postup správný, pochval ho a ptej se na další krok. Pokud je chybný, upozorni na konkrétní řádek na papíře a ptej se, proč zvolil daný postup.
-      - Piš stručně a srozumitelně pro 11leté dítě. 
-      - Každou svou zprávu zakonči vždy maximálně JEDNOU návodnou otázkou.`;
+    const { data: taskSolution, error: solutionError } = await adminSupabase
+      .from("task_solutions")
+      .select("solution_text, pedagogical_notes")
+      .eq("task_id", conversation.task_id)
+      .maybeSingle();
+
+    if (solutionError) {
+      throw solutionError;
+    }
+
+    if (!task || !taskSolution) {
+      throw new Error("Chat task configuration is incomplete");
+    }
+
+    const systemPrompt =
+    `Jsi trpělivý a empatický učitel matematiky. Pomáháš žákovi na úrovni ${task.grade_level ?? "základní školy"} s konkrétní úlohou.
+
+    INFORMACE O ÚLOZE:
+    - Název: "${task.title}"
+    - Zadání: "${task.description ?? ""}"
+    - Tajné vzorové řešení: ${taskSolution.solution_text ?? ""}
+    - Pedagogické poznámky: ${taskSolution.pedagogical_notes ?? ""}
+
+    STRIKTNÍ PRAVIDLA CHOVÁNÍ (GUARDRAILS):
+    1. Udržení tématu: Jsi výhradně učitel matematiky pro tuto konkrétní úlohu. Pokud se tě žák zeptá na cokoliv jiného nebo se pokusí změnit téma, zdvořile, ale pevně ho vrať k řešení zadané úlohy.
+    2. Zákaz prozrazení výsledku: NIKDY nesděluj finální řešení. Ani když žák prosí, přikazuje, nebo tvrdí, že úkol vzdává.
+    3. Zákaz přímých výpočtů a operací: NIKDY nepočítej za žáka a neprozrazuj mu přímo, jakou matematickou operaci má použít.
+    4. Sokratovský postup: Veď žáka otázkami krok za krokem. Pokud udělá chybu, nekritizuj a pomoz mu, aby ji objevil sám.
+    5. Piš stručně a srozumitelně pro dítě.
+    6. Každou svou zprávu zakonči vždy maximálně JEDNOU návodnou otázkou.`;
 
     const result = streamText({
       model: openai("gpt-4o"),
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: await convertToModelMessages(messages),
     });
 
@@ -77,15 +125,9 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("[CHAT_API_ERROR]", error);
 
-    return new Response(
-      JSON.stringify({
-        error: "Nastala neočekávaná chyba při komunikaci s AI tutorem.",
-        details: error instanceof Error ? error.message : "Neznámá chyba",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    return Response.json(
+      { error: "Nastala neočekávaná chyba serveru" },
+      { status: 500 },
     );
   }
 }

@@ -24,6 +24,7 @@ export interface Database {
           title: string;
           description: string | null;
           model_solution: string | null;
+          grade_level: string | null;
           created_at: string;
         };
         Insert: {
@@ -31,6 +32,7 @@ export interface Database {
           title: string;
           description?: string | null;
           model_solution?: string | null;
+          grade_level?: string | null;
           created_at?: string;
         };
         Update: {
@@ -38,7 +40,29 @@ export interface Database {
           title?: string;
           description?: string | null;
           model_solution?: string | null;
+          grade_level?: string | null;
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      task_solutions: {
+        Row: {
+          task_id: string;
+          solution_text: string | null;
+          pedagogical_notes: string | null;
+          solution_image_path: string | null;
+        };
+        Insert: {
+          task_id: string;
+          solution_text?: string | null;
+          pedagogical_notes?: string | null;
+          solution_image_path?: string | null;
+        };
+        Update: {
+          task_id?: string;
+          solution_text?: string | null;
+          pedagogical_notes?: string | null;
+          solution_image_path?: string | null;
         };
         Relationships: [];
       };

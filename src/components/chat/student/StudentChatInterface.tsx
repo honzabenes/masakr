@@ -10,23 +10,21 @@ import ChatInputArea from "./ChatInputArea";
 import type { ConversationStatus, Message } from "@/types";
 
 export interface StudentChatInterfaceProps {
-  taskTitle: string;
-  taskDescription: string;
-  solution: string;
+  taskId: string;
+  conversationId: string;
   status: ConversationStatus;
 }
 
 export default function StudentChatInterface({
-  taskTitle,
-  taskDescription,
-  solution,
+  taskId,
+  conversationId,
   status,
 }: StudentChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
   const initialTaskMessage: Message = {
     id: "initial-task-msg",
-    content: taskDescription,
+    content: "Zadání načteno",
     sender_type: "ai",
     created_at: new Date().toISOString(),
   };
@@ -34,9 +32,9 @@ export default function StudentChatInterface({
     () =>
       new DefaultChatTransport({
         api: "/api/chat",
-        body: { data: { taskTitle, taskDescription, solution } },
+        body: { data: { taskId, conversationId } },
       }),
-    [solution, taskDescription, taskTitle],
+    [taskId, conversationId],
   );
 
   const {
@@ -56,7 +54,7 @@ export default function StudentChatInterface({
 
   return (
     <main className="flex flex-col h-full w-full max-w-4xl rounded-md overflow-hidden bg-card text-card-foreground">
-      <ChatActionBar status={status} taskTitle={taskTitle} />
+      <ChatActionBar status={status} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6 bg-background">
         <div className="flex flex-col space-y-6">

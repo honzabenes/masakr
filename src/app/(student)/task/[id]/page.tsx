@@ -39,9 +39,8 @@ export default async function TaskPage({ params }: TaskPageProps) {
     <main className="h-dvh overflow-hidden">
       <div className="h-full w-full flex items-center justify-center pt-16 pb-4 px-4 md:pb-6 md:px-6">
         <StudentChatInterface
-          taskTitle={task.title}
-          taskDescription={task.description || ""}
-          solution={task.model_solution || ""}
+          taskId={task.id}
+          conversationId={conversation.id}
           status={conversation.status}
         />
       </div>
