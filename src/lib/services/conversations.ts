@@ -44,6 +44,25 @@ export async function getConversation(
   return data;
 }
 
+export async function getConversationByIdForUser(
+  supabase: AppSupabaseClient,
+  conversationId: string,
+  userId: string,
+): Promise<Conversation | null> {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("*")
+    .eq("id", conversationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Nepodařilo se načíst konverzaci: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function createConversation(
   supabase: AppSupabaseClient,
   taskId: string,

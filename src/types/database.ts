@@ -23,7 +23,6 @@ export interface Database {
           id: string;
           title: string;
           description: string | null;
-          model_solution: string | null;
           grade_level: string | null;
           created_at: string;
         };
@@ -31,7 +30,6 @@ export interface Database {
           id?: string;
           title: string;
           description?: string | null;
-          model_solution?: string | null;
           grade_level?: string | null;
           created_at?: string;
         };
@@ -39,7 +37,6 @@ export interface Database {
           id?: string;
           title?: string;
           description?: string | null;
-          model_solution?: string | null;
           grade_level?: string | null;
           created_at?: string;
         };

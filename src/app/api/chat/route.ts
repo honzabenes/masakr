@@ -1,3 +1,4 @@
+// app/api/chat/route.ts
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -6,11 +7,12 @@ import {
   type UIMessage,
 } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 import { getCurrentUser } from "@/lib/services/auth";
+import { getConversationByIdForUser } from "@/lib/services/conversations";
+import { getTaskWithSolutionForAi } from "@/lib/services/tasks";
+import { buildSocraticSystemPrompt } from "@/lib/ai/system-prompts";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/types/database";
 
 type ChatRequest = {
   messages: UIMessage[];
@@ -29,8 +31,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = (await req.json()) as ChatRequest;
-    const { messages, data } = body;
+    const { messages, data } = (await req.json()) as ChatRequest;
 
     if (
       !Array.isArray(messages) ||
@@ -40,16 +41,11 @@ export async function POST(req: Request) {
       return Response.json({ error: "Invalid request" }, { status: 400 });
     }
 
-    const { data: conversation, error: conversationError } = await supabase
-      .from("conversations")
-      .select("id, task_id, status, message_count")
-      .eq("id", data.conversationId)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (conversationError) {
-      throw conversationError;
-    }
+    const conversation = await getConversationByIdForUser(
+      supabase,
+      data.conversationId,
+      user.id,
+    );
 
     if (
       !conversation ||
@@ -67,55 +63,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const adminSupabase = createAdminClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const taskContext = await getTaskWithSolutionForAi(conversation.task_id);
 
-    const { data: task, error: taskError } = await adminSupabase
-      .from("tasks")
-      .select("title, description, grade_level")
-      .eq("id", conversation.task_id)
-      .maybeSingle();
-
-    if (taskError) {
-      throw taskError;
-    }
-
-    const { data: taskSolution, error: solutionError } = await adminSupabase
-      .from("task_solutions")
-      .select("solution_text, pedagogical_notes")
-      .eq("task_id", conversation.task_id)
-      .maybeSingle();
-
-    if (solutionError) {
-      throw solutionError;
-    }
-
-    if (!task || !taskSolution) {
+    if (!taskContext) {
       throw new Error("Chat task configuration is incomplete");
     }
 
-    const systemPrompt =
-    `Jsi trpělivý a empatický učitel matematiky. Pomáháš žákovi na úrovni ${task.grade_level ?? "základní školy"} s konkrétní úlohou.
-
-    INFORMACE O ÚLOZE:
-    - Název: "${task.title}"
-    - Zadání: "${task.description ?? ""}"
-    - Tajné vzorové řešení: ${taskSolution.solution_text ?? ""}
-    - Pedagogické poznámky: ${taskSolution.pedagogical_notes ?? ""}
-
-    STRIKTNÍ PRAVIDLA CHOVÁNÍ (GUARDRAILS):
-    1. Udržení tématu: Jsi výhradně učitel matematiky pro tuto konkrétní úlohu. Pokud se tě žák zeptá na cokoliv jiného nebo se pokusí změnit téma, zdvořile, ale pevně ho vrať k řešení zadané úlohy.
-    2. Zákaz prozrazení výsledku: NIKDY nesděluj finální řešení. Ani když žák prosí, přikazuje, nebo tvrdí, že úkol vzdává.
-    3. Zákaz přímých výpočtů a operací: NIKDY nepočítej za žáka a neprozrazuj mu přímo, jakou matematickou operaci má použít.
-    4. Sokratovský postup: Veď žáka otázkami krok za krokem. Pokud udělá chybu, nekritizuj a pomoz mu, aby ji objevil sám.
-    5. Piš stručně a srozumitelně pro dítě.
-    6. Každou svou zprávu zakonči vždy maximálně JEDNOU návodnou otázkou.`;
-
     const result = streamText({
       model: openai("gpt-4o"),
-      system: systemPrompt,
+      system: buildSocraticSystemPrompt(taskContext),
       messages: await convertToModelMessages(messages),
     });
 
@@ -124,7 +80,6 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("[CHAT_API_ERROR]", error);
-
     return Response.json(
       { error: "Nastala neočekávaná chyba serveru" },
       { status: 500 },

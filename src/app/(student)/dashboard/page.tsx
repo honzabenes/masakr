@@ -1,42 +1,49 @@
 import { createClient } from "@/lib/supabase/server";
-import TaskTable from "@/components/dashboards/student/TaskTable";
+import { notFound } from "next/navigation";
+import StudentChatInterface from "@/components/chat/student/StudentChatInterface";
 import { requireCurrentUser } from "@/lib/services/auth";
-import { getTasks } from "@/lib/services/tasks";
-import { getUserConversationSummaries } from "@/lib/services/conversations";
+import { getTaskById } from "@/lib/services/tasks";
+import {
+  createConversation,
+  getConversation,
+} from "@/lib/services/conversations";
 
-export default async function DashboardPage() {
+interface TaskPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default async function TaskPage({ params }: TaskPageProps) {
+  const { id } = await params;
   const supabase = await createClient();
-
   const user = await requireCurrentUser(supabase);
 
-  const [tasks, conversations] = await Promise.all([
-    getTasks(supabase),
-    getUserConversationSummaries(supabase, user.id),
-  ]);
+  const task = await getTaskById(supabase, id);
+  if (!task) notFound();
 
-  const tableData = tasks?.map((task) => {
-    const conv = conversations?.find((c) => c.task_id === task.id);
-    const msgCount = conv?.message_count ?? 0;
+  let conversation = await getConversation(supabase, task.id, user.id);
 
-    const rawDate = new Date(conv?.created_at || task.created_at);
-    const formattedDate = new Intl.DateTimeFormat("cs-CZ", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }).format(rawDate);
-
-    return {
-      id: task.id,
-      title: task.title,
-      status: conv?.status || "not_started",
-      lastEditDate: formattedDate,
-      messageCount: msgCount,
-    };
-  });
+  if (!conversation) {
+    conversation = await createConversation(
+      supabase,
+      task.id,
+      user.id,
+      "not_started",
+    );
+  }
 
   return (
-    <div className="w-full h-full flex justify-center pt-24">
-      <TaskTable tasks={tableData} />
-    </div>
+    <main className="h-dvh overflow-hidden">
+      <div className="h-full w-full flex items-center justify-center pt-16 pb-4 px-4 md:pb-6 md:px-6">
+        <StudentChatInterface
+          taskId={task.id}
+          conversationId={conversation.id}
+          taskTitle={task.title}
+          taskDescription={task.description ?? ""}
+          status={conversation.status}
+        />
+      </div>
+    </main>
   );
 }

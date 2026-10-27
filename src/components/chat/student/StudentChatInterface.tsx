@@ -3,7 +3,6 @@
 import { useRef, useEffect, useMemo, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
-
 import ChatActionBar from "./ChatActionBar";
 import ChatMessageBubble from "./ChatMessageBubble";
 import ChatInputArea from "./ChatInputArea";
@@ -12,22 +11,28 @@ import type { ConversationStatus, Message } from "@/types";
 export interface StudentChatInterfaceProps {
   taskId: string;
   conversationId: string;
+  taskTitle: string;
+  taskDescription: string;
   status: ConversationStatus;
 }
 
 export default function StudentChatInterface({
   taskId,
   conversationId,
+  taskTitle,
+  taskDescription,
   status,
 }: StudentChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
+
   const initialTaskMessage: Message = {
     id: "initial-task-msg",
-    content: "Zadání načteno",
+    content: taskDescription,
     sender_type: "ai",
     created_at: new Date().toISOString(),
   };
+
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -45,7 +50,7 @@ export default function StudentChatInterface({
   } = useChat({
     transport,
   });
-  
+
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
 
   useEffect(() => {
@@ -54,7 +59,7 @@ export default function StudentChatInterface({
 
   return (
     <main className="flex flex-col h-full w-full max-w-4xl rounded-md overflow-hidden bg-card text-card-foreground">
-      <ChatActionBar status={status} />
+      <ChatActionBar status={status} taskTitle={taskTitle} />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6 bg-background">
         <div className="flex flex-col space-y-6">
@@ -72,10 +77,12 @@ export default function StudentChatInterface({
               )
               .map((part) => part.text)
               .join("");
+
             const imagePart = msg.parts.find(
               (part): part is FileUIPart =>
                 part.type === "file" && part.mediaType.startsWith("image/"),
             );
+
             const mappedMessage: Message = {
               id: msg.id,
               content: text,
