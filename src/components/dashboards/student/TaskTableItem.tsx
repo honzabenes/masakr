@@ -17,7 +17,11 @@ const taskStatusConfig = {
   not_started: { label: "Nezahájeno", variant: "destructive" as const },
   in_progress: { label: "Rozpracováno", variant: "secondary" as const },
   submitted: { label: "Odevzdáno", variant: "outline" as const },
-  graded: { label: "Ohodnoceno", variant: "default" as const },
+  needs_revision: {
+    label: "Nová zpráva od učitele",
+    variant: "destructive" as const,
+  },
+  finished: { label: "Dokončeno", variant: "default" as const },
 };
 
 // --- COMPONENT ---
@@ -26,7 +30,7 @@ export default function TaskTableItem({
   title,
   status,
   lastEditDate,
-  messageCount
+  messageCount,
 }: TaskTableItemProps) {
   const badge = taskStatusConfig[status];
 
@@ -35,9 +39,7 @@ export default function TaskTableItem({
       <div className="flex flex-col items-center gap-1 justify-between px-6 py-4 border rounded-md cursor-pointer my-4 hover:bg-accent transition-colors">
         <div className="flex w-full items-center justify-between">
           <h3 className="font-medium">{title}</h3>
-          <span className="text-sm text-muted-foreground">
-            {lastEditDate}
-          </span>
+          <span className="text-sm text-muted-foreground">{lastEditDate}</span>
         </div>
 
         <div className="flex w-full items-center justify-between">

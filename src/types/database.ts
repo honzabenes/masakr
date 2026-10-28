@@ -21,23 +21,29 @@ export interface Database {
       tasks: {
         Row: {
           id: string;
+          task_number: number | null;
           title: string;
           description: string | null;
           grade_level: string | null;
+          grade_levels: string[];
           created_at: string;
         };
         Insert: {
           id?: string;
+          task_number?: number | null;
           title: string;
           description?: string | null;
           grade_level?: string | null;
+          grade_levels?: string[];
           created_at?: string;
         };
         Update: {
           id?: string;
+          task_number?: number | null;
           title?: string;
           description?: string | null;
           grade_level?: string | null;
+          grade_levels?: string[];
           created_at?: string;
         };
         Relationships: [];

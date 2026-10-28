@@ -9,7 +9,7 @@ export interface ChatMessageBubbleProps {
 export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   const isStudent = message.sender_type === "student";
   const isAi = message.sender_type === "ai";
-  const isAdmin = message.sender_type === "admin";
+  const isTeacher = message.sender_type === "teacher";
 
   return (
     <div
@@ -46,7 +46,7 @@ export default function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               : "bg-orange-50 border-2 border-orange-400 text-orange-950 rounded-lg md:rounded-tl-sm"
         }`}
       >
-        {isAdmin && (
+        {isTeacher && (
           <span className="text-[10px] md:text-xs font-bold text-orange-700 uppercase tracking-wider mb-1">
             Zpráva od učitele
           </span>

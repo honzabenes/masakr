@@ -56,12 +56,14 @@ export async function POST(req: Request) {
       !conversation ||
       conversation.task_id !== data.taskId ||
       conversation.status === "submitted" ||
-      conversation.status === "graded"
+      conversation.status === "finished"
     ) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (conversation.message_count >= MAX_MESSAGES) {
+    const isRevisionReply = conversation.status === "needs_revision";
+
+    if (!isRevisionReply && conversation.message_count >= MAX_MESSAGES) {
       await submitConversation(supabase, conversation.id, user.id);
       return Response.json({ error: "Message limit reached" }, { status: 429 });
     }
@@ -79,6 +81,13 @@ export async function POST(req: Request) {
         senderId: user.id,
         content: studentContent,
       });
+    }
+
+    const limitExceeded = conversation.message_count + 2 >= MAX_MESSAGES;
+
+    if (isRevisionReply || limitExceeded) {
+      await submitConversation(supabase, conversation.id, user.id);
+      return Response.json({ status: "submitted" }, { status: 200 });
     }
 
     const taskContext = await getTaskWithSolutionForAi(conversation.task_id);

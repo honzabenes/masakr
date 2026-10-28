@@ -5,7 +5,8 @@ export type ConversationStatus =
   | "not_started"
   | "in_progress"
   | "submitted"
-  | "graded";
+  | "needs_revision"
+  | "finished";
 
 export interface Message {
   id: string;

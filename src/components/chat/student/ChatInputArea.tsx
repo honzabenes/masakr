@@ -98,20 +98,18 @@ export default function ChatInputArea({
   };
 
   const isActive =
-    (status === "not_started" || status === "in_progress") && !isLimitReached;
+    status === "needs_revision" ||
+    ((status === "not_started" || status === "in_progress") && !isLimitReached);
 
   return (
     <div className="p-2 bg-card shrink-0">
       {!isActive ? (
         <div className="p-4 md:p-6 text-center text-sm md:text-base text-muted-foreground bg-muted/50 rounded-2xl border border-dashed border-border/60">
-          {isLimitReached && status !== "graded" ? (
-            "Dosáhl jsi maximálního počtu zpráv pro tuto úlohu. Učitel se na tvé řešení brzy podívá."
-          ) : (
-            <>
-              Úkol byl odevzdán a{" "}
-              {status === "submitted" ? "čeká na hodnocení." : "ohodnocen."}
-            </>
-          )}
+          {status === "finished"
+            ? "Úkol byl úspěšně dokončen a uzavřen učitelem."
+            : isLimitReached
+              ? "Dosáhl jsi maximálního počtu zpráv. Učitel se na tvé řešení brzy podívá."
+              : "Úkol byl odevzdán a čeká na kontrolu od učitele."}
         </div>
       ) : (
         <form

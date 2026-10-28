@@ -98,7 +98,7 @@ export async function submitConversation(
     })
     .eq("id", conversationId)
     .eq("user_id", userId)
-    .in("status", ["not_started", "in_progress"]);
+    .in("status", ["not_started", "in_progress", "needs_revision"]);
 
   if (error) {
     throw new Error(`Nepodařilo se odevzdat úkol: ${error.message}`);

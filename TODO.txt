@@ -5,11 +5,10 @@
 
 === STUDENT ===
 
-- Povolit připnout finální zprávu s vyfoceným řešením po dosažení maximálního počtu zpráv
 - Přidat deadline datum, nejspíš místo data zadání
 - Filtrování chatů podle jména / čísla ... přidat úlohám čísla
+- Možnost zrušit odevzdání
 
-- V případě překročení limitu zpráv zabránit AI další odpovědi. Následně už AI do chatu vůbec nevstupuje, komunikuje pouze učitel se studentem.
 
 === TEACHER ===
 

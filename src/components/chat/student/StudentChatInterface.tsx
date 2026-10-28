@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useMemo, useState, useTransition } from "react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import ChatActionBar from "./ChatActionBar";
 import ChatMessageBubble from "./ChatMessageBubble";
 import ChatInputArea from "./ChatInputArea";
@@ -34,12 +34,23 @@ export default function StudentChatInterface({
     useState<ConversationStatus>(initialStatus);
   const [isPendingSubmit, startSubmitTransition] = useTransition();
 
-  const initialTaskMessage: Message = {
-    id: "initial-task-msg",
-    content: taskDescription,
-    sender_type: "ai",
-    created_at: new Date().toISOString(),
-  };
+  const initialTaskMessage: Message = useMemo(
+    () => ({
+      id: "initial-task-msg",
+      content: taskDescription,
+      sender_type: "ai",
+      created_at: new Date().toISOString(),
+    }),
+    [taskDescription],
+  );
+
+  const teacherMessageIds = useMemo(() => {
+    return new Set(
+      initialMessages
+        .filter((m) => m.sender_type === "teacher")
+        .map((m) => m.id),
+    );
+  }, [initialMessages]);
 
   const formattedInitialMessages: UIMessage[] = useMemo(() => {
     return initialMessages.map((msg) => ({
@@ -69,10 +80,11 @@ export default function StudentChatInterface({
   });
 
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
-  const isLimitReached = messages.length >= MAX_MESSAGES;
+  const isLimitReached =
+    currentStatus !== "needs_revision" && messages.length >= MAX_MESSAGES - 1;
 
   const effectiveStatus: ConversationStatus =
-    isLimitReached && !isSubmitting && currentStatus !== "graded"
+    isLimitReached && !isSubmitting && currentStatus !== "finished"
       ? "submitted"
       : currentStatus;
 
@@ -83,9 +95,49 @@ export default function StudentChatInterface({
     });
   };
 
+  const handleSendMessage = async (text: string, files?: FileList) => {
+    const willClose =
+      currentStatus === "needs_revision" ||
+      messages.length + 1 >= MAX_MESSAGES - 1;
+
+    await sendMessage({ text, ...(files ? { files } : {}) });
+
+    if (willClose) {
+      setCurrentStatus("submitted");
+    }
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const mapUIMessageToMessage = (msg: UIMessage): Message => {
+    let textContent = "";
+    let imageUrl: string | undefined = undefined;
+
+    for (const part of msg.parts) {
+      if (part.type === "text") {
+        textContent += part.text;
+      } else if (part.type === "file" && part.mediaType.startsWith("image/")) {
+        imageUrl = part.url;
+      }
+    }
+
+    const senderType =
+      msg.role === "user"
+        ? "student"
+        : teacherMessageIds.has(msg.id)
+          ? "teacher"
+          : "ai";
+
+    return {
+      id: msg.id,
+      content: textContent,
+      sender_type: senderType,
+      image_url: imageUrl,
+      created_at: new Date().toISOString(),
+    };
+  };
 
   return (
     <main className="flex flex-col h-full w-full max-w-4xl rounded-md overflow-hidden bg-card text-card-foreground">
@@ -100,39 +152,12 @@ export default function StudentChatInterface({
         <div className="flex flex-col space-y-6">
           <ChatMessageBubble message={initialTaskMessage} />
 
-          {messages.map((msg: UIMessage) => {
-            const text = msg.parts
-              .filter(
-                (
-                  part,
-                ): part is Extract<
-                  UIMessage["parts"][number],
-                  { type: "text" }
-                > => part.type === "text",
-              )
-              .map((part) => part.text)
-              .join("");
-
-            const imagePart = msg.parts.find(
-              (part): part is FileUIPart =>
-                part.type === "file" && part.mediaType.startsWith("image/"),
-            );
-
-            const mappedMessage: Message = {
-              id: msg.id,
-              content: text,
-              sender_type: msg.role === "user" ? "student" : "ai",
-              image_url: imagePart?.url,
-              created_at: new Date().toISOString(),
-            };
-
-            return (
-              <ChatMessageBubble
-                key={mappedMessage.id}
-                message={mappedMessage}
-              />
-            );
-          })}
+          {messages.map((msg) => (
+            <ChatMessageBubble
+              key={msg.id}
+              message={mapUIMessageToMessage(msg)}
+            />
+          ))}
 
           {isSubmitting && (
             <div className="text-sm text-muted-foreground animate-pulse text-center mt-4">
@@ -155,9 +180,7 @@ export default function StudentChatInterface({
         isLimitReached={isLimitReached}
         input={input}
         onInputChange={setInput}
-        onSubmit={async (text, files) => {
-          await sendMessage({ text, ...(files ? { files } : {}) });
-        }}
+        onSubmit={handleSendMessage}
         isSubmitting={isSubmitting}
       />
     </main>
