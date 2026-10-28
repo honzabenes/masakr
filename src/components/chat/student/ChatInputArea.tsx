@@ -142,6 +142,7 @@ export default function ChatInputArea({
           <textarea
             ref={textareaRef}
             value={input}
+            maxLength={2500}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
             rows={1}
