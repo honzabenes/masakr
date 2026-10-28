@@ -1,3 +1,3 @@
-export default function SubmissionsPage() {
-  return <div>Seznam odevzdaných úkolů dětí k hodnocení</div>;
+export default function SubmissionPage() {
+  return <div>Úkol k hodnocení</div>;
 }
