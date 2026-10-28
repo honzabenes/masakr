@@ -3,13 +3,16 @@ import TaskTable from "@/components/dashboards/student/TaskTable";
 import { requireCurrentUser } from "@/lib/services/auth";
 import { getTasks } from "@/lib/services/tasks";
 import { getUserConversationSummaries } from "@/lib/services/conversations";
+import { getUserGradeLevel } from "@/lib/services/users";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const user = await requireCurrentUser(supabase);
 
+  const gradeLevel = await getUserGradeLevel(supabase, user.id);
+
   const [tasks, conversations] = await Promise.all([
-    getTasks(supabase),
+    getTasks(supabase, gradeLevel),
     getUserConversationSummaries(supabase, user.id),
   ]);
 
@@ -17,7 +20,7 @@ export default async function DashboardPage() {
     const conv = conversations?.find((c) => c.task_id === task.id);
     const msgCount = conv?.message_count ?? 0;
 
-    const rawDate = new Date(conv?.created_at || task.created_at);
+    const rawDate = new Date(conv?.updated_at || task.created_at);
     const formattedDate = new Intl.DateTimeFormat("cs-CZ", {
       day: "numeric",
       month: "numeric",

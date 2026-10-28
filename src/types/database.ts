@@ -6,45 +6,63 @@ export interface Database {
       users: {
         Row: {
           id: string;
+          nickname: string | null;
           role: UserRole;
+          grade_level: string | null;
+          created_at: string;
         };
         Insert: {
           id: string;
+          nickname?: string | null;
           role?: UserRole;
+          grade_level?: string | null;
+          created_at?: string;
         };
         Update: {
           id?: string;
+          nickname?: string | null;
           role?: UserRole;
+          grade_level?: string | null;
+          created_at?: string;
         };
         Relationships: [];
       };
       tasks: {
         Row: {
           id: string;
-          task_number: number | null;
           title: string;
           description: string | null;
-          grade_level: string | null;
-          grade_levels: string[];
+          created_by: string | null;
           created_at: string;
+          image_path: string | null;
+          is_published: boolean;
+          due_date: string | null;
+          task_number: number | null;
+          grade_levels: string[];
         };
         Insert: {
           id?: string;
-          task_number?: number | null;
           title: string;
           description?: string | null;
-          grade_level?: string | null;
-          grade_levels?: string[];
+          created_by?: string | null;
           created_at?: string;
+          image_path?: string | null;
+          is_published?: boolean;
+          due_date?: string | null;
+          task_number?: number | null;
+          grade_levels?: string[];
         };
         Update: {
           id?: string;
-          task_number?: number | null;
           title?: string;
           description?: string | null;
-          grade_level?: string | null;
-          grade_levels?: string[];
+          created_by?: string | null;
           created_at?: string;
+          image_path?: string | null;
+          is_published?: boolean;
+          due_date?: string | null;
+          task_number?: number | null;
+          grade_levels?: string[];
         };
         Relationships: [];
       };
@@ -52,20 +70,20 @@ export interface Database {
         Row: {
           task_id: string;
           solution_text: string | null;
-          pedagogical_notes: string | null;
           solution_image_path: string | null;
+          pedagogical_notes: string | null;
         };
         Insert: {
           task_id: string;
           solution_text?: string | null;
-          pedagogical_notes?: string | null;
           solution_image_path?: string | null;
+          pedagogical_notes?: string | null;
         };
         Update: {
           task_id?: string;
           solution_text?: string | null;
-          pedagogical_notes?: string | null;
           solution_image_path?: string | null;
+          pedagogical_notes?: string | null;
         };
         Relationships: [];
       };
@@ -76,10 +94,10 @@ export interface Database {
           user_id: string;
           status: ConversationStatus;
           created_at: string;
-          updated_at: string;
-          message_count: number;
-          is_solved_by_ai: boolean;
           pinned_message_id: string | null;
+          is_solved_by_ai: boolean;
+          message_count: number;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -87,10 +105,10 @@ export interface Database {
           user_id: string;
           status?: ConversationStatus;
           created_at?: string;
-          updated_at?: string;
-          message_count?: number;
-          is_solved_by_ai?: boolean;
           pinned_message_id?: string | null;
+          is_solved_by_ai?: boolean;
+          message_count?: number;
+          updated_at?: string;
         };
         Update: {
           id?: string;
@@ -98,10 +116,10 @@ export interface Database {
           user_id?: string;
           status?: ConversationStatus;
           created_at?: string;
-          updated_at?: string;
-          message_count?: number;
-          is_solved_by_ai?: boolean;
           pinned_message_id?: string | null;
+          is_solved_by_ai?: boolean;
+          message_count?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };

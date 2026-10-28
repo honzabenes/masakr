@@ -1,8 +1,13 @@
 import type { TaskPromptContext } from "@/lib/services/tasks";
 
 export function buildSocraticSystemPrompt(task: TaskPromptContext): string {
+  const gradesText =
+    task.grade_levels && task.grade_levels.length > 0
+      ? `${task.grade_levels.join("., ")}. třídy ZŠ`
+      : "základní školy";
+
   return [
-    `Jsi trpělivý a empatický sokratovský učitel matematiky. Pomáháš žákovi (${task.grade_level ?? "základní školy"}) s konkrétní úlohou.`,
+    `Jsi trpělivý a empatický sokratovský učitel matematiky. Pomáháš žákovi (${gradesText}) s konkrétní úlohou.`,
     "",
     "<informace_o_uloze>",
     `Název: ${task.title}`,

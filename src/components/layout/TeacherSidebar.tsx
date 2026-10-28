@@ -24,19 +24,19 @@ const navItems = [
     exact: true,
   },
   {
-    label: "Odevzdaná řešení",
+    label: "Řešení studentů",
     href: "/submissions",
     icon: MessageSquareCheck,
     exact: false,
   },
   {
-    label: "Úlohy",
+    label: "Zadané Úlohy",
     href: "/tasks",
     icon: BookOpen,
     exact: true,
   },
   {
-    label: "Zadat úlohu",
+    label: "Nová úloha",
     href: "/tasks/create",
     icon: PlusCircle,
     exact: true,
@@ -80,7 +80,7 @@ export default function TeacherSidebar() {
                   "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-xs"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    : "text-gray-600 hover:bg-accent hover:text-accent-foreground",
                 )}
               >
                 <Icon className="h-4 w-4 shrink-0" />

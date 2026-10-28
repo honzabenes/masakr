@@ -20,3 +20,20 @@ export async function getUserRole(
 
   return data.role;
 }
+
+export async function getUserGradeLevel(
+  supabase: AppSupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("grade_level")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    throw new Error(`Nepodařilo se načíst ročník uživatele: ${error.message}`);
+  }
+
+  return data.grade_level;
+}
