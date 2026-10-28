@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef, useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState, useTransition } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
 import ChatActionBar from "./ChatActionBar";
 import ChatMessageBubble from "./ChatMessageBubble";
 import ChatInputArea from "./ChatInputArea";
+import { submitTaskAction } from "@/app/actions/conversations";
 import type { ConversationStatus, Message } from "@/types";
+
+const MAX_MESSAGES = 6;
 
 export interface StudentChatInterfaceProps {
   taskId: string;
@@ -14,6 +17,7 @@ export interface StudentChatInterfaceProps {
   taskTitle: string;
   taskDescription: string;
   status: ConversationStatus;
+  initialMessages: Message[];
 }
 
 export default function StudentChatInterface({
@@ -21,10 +25,14 @@ export default function StudentChatInterface({
   conversationId,
   taskTitle,
   taskDescription,
-  status,
+  status: initialStatus,
+  initialMessages,
 }: StudentChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
+  const [currentStatus, setCurrentStatus] =
+    useState<ConversationStatus>(initialStatus);
+  const [isPendingSubmit, startSubmitTransition] = useTransition();
 
   const initialTaskMessage: Message = {
     id: "initial-task-msg",
@@ -32,6 +40,14 @@ export default function StudentChatInterface({
     sender_type: "ai",
     created_at: new Date().toISOString(),
   };
+
+  const formattedInitialMessages: UIMessage[] = useMemo(() => {
+    return initialMessages.map((msg) => ({
+      id: msg.id,
+      role: msg.sender_type === "student" ? "user" : "assistant",
+      parts: [{ type: "text", text: msg.content }],
+    }));
+  }, [initialMessages]);
 
   const transport = useMemo(
     () =>
@@ -49,9 +65,23 @@ export default function StudentChatInterface({
     error,
   } = useChat({
     transport,
+    messages: formattedInitialMessages,
   });
 
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
+  const isLimitReached = messages.length >= MAX_MESSAGES;
+
+  const effectiveStatus: ConversationStatus =
+    isLimitReached && !isSubmitting && currentStatus !== "graded"
+      ? "submitted"
+      : currentStatus;
+
+  const handleManualSubmit = () => {
+    startSubmitTransition(async () => {
+      await submitTaskAction(conversationId, taskId);
+      setCurrentStatus("submitted");
+    });
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,7 +89,12 @@ export default function StudentChatInterface({
 
   return (
     <main className="flex flex-col h-full w-full max-w-4xl rounded-md overflow-hidden bg-card text-card-foreground">
-      <ChatActionBar status={status} taskTitle={taskTitle} />
+      <ChatActionBar
+        status={effectiveStatus}
+        taskTitle={taskTitle}
+        onSubmit={handleManualSubmit}
+        isSubmittingTask={isPendingSubmit}
+      />
 
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 md:px-6 md:pb-6 bg-background">
         <div className="flex flex-col space-y-6">
@@ -105,7 +140,7 @@ export default function StudentChatInterface({
             </div>
           )}
 
-          {error && (
+          {error && !isLimitReached && (
             <div className="text-sm text-destructive text-center mt-4">
               Došlo k chybě při komunikaci s AI.
             </div>
@@ -116,7 +151,8 @@ export default function StudentChatInterface({
       </div>
 
       <ChatInputArea
-        status={status}
+        status={effectiveStatus}
+        isLimitReached={isLimitReached}
         input={input}
         onInputChange={setInput}
         onSubmit={async (text, files) => {

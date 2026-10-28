@@ -1,5 +1,6 @@
 export type UserRole = "student" | "teacher" | "admin";
-export type SenderRole = "student" | "ai" | "admin";
+export type SenderRole = "student" | "ai" | "teacher";
+
 export type ConversationStatus =
   | "not_started"
   | "in_progress"

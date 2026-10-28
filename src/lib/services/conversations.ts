@@ -6,7 +6,7 @@ type AppSupabaseClient = SupabaseClient<Database>;
 type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 type ConversationSummary = Pick<
   Conversation,
-  "task_id" | "status" | "created_at" | "message_count"
+  "task_id" | "status" | "created_at" | "message_count" | "updated_at"
 >;
 
 export async function getUserConversationSummaries(
@@ -15,7 +15,7 @@ export async function getUserConversationSummaries(
 ): Promise<ConversationSummary[]> {
   const { data, error } = await supabase
     .from("conversations")
-    .select("task_id, status, created_at, message_count")
+    .select("task_id, status, created_at, message_count, updated_at")
     .eq("user_id", userId);
 
   if (error) {
@@ -71,7 +71,10 @@ export async function createConversation(
 ): Promise<Conversation> {
   const { data, error } = await supabase
     .from("conversations")
-    .insert({ task_id: taskId, user_id: userId, status })
+    .upsert(
+      { task_id: taskId, user_id: userId, status },
+      { onConflict: "task_id,user_id" },
+    )
     .select()
     .single();
 
@@ -80,4 +83,24 @@ export async function createConversation(
   }
 
   return data;
+}
+
+export async function submitConversation(
+  supabase: AppSupabaseClient,
+  conversationId: string,
+  userId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("conversations")
+    .update({
+      status: "submitted",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", conversationId)
+    .eq("user_id", userId)
+    .in("status", ["not_started", "in_progress"]);
+
+  if (error) {
+    throw new Error(`Nepodařilo se odevzdat úkol: ${error.message}`);
+  }
 }

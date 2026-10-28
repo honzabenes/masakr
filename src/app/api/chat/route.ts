@@ -1,4 +1,3 @@
-// app/api/chat/route.ts
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -9,10 +8,16 @@ import {
 import { openai } from "@ai-sdk/openai";
 
 import { getCurrentUser } from "@/lib/services/auth";
-import { getConversationByIdForUser } from "@/lib/services/conversations";
+import {
+  getConversationByIdForUser,
+  submitConversation,
+} from "@/lib/services/conversations";
 import { getTaskWithSolutionForAi } from "@/lib/services/tasks";
+import { createMessage } from "@/lib/services/messages";
 import { buildSocraticSystemPrompt } from "@/lib/ai/system-prompts";
 import { createClient } from "@/lib/supabase/server";
+
+const MAX_MESSAGES = 6;
 
 type ChatRequest = {
   messages: UIMessage[];
@@ -56,11 +61,24 @@ export async function POST(req: Request) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (conversation.message_count >= 30) {
-      return Response.json(
-        { error: "Message limit exceeded" },
-        { status: 429 },
-      );
+    if (conversation.message_count >= MAX_MESSAGES) {
+      await submitConversation(supabase, conversation.id, user.id);
+      return Response.json({ error: "Message limit reached" }, { status: 429 });
+    }
+
+    const lastUserMessage = messages[messages.length - 1];
+    const userTextPart = lastUserMessage?.parts?.find(
+      (p): p is Extract<typeof p, { type: "text" }> => p.type === "text",
+    );
+    const studentContent = userTextPart?.text?.trim() ?? "";
+
+    if (studentContent) {
+      await createMessage({
+        conversationId: conversation.id,
+        senderType: "student",
+        senderId: user.id,
+        content: studentContent,
+      });
     }
 
     const taskContext = await getTaskWithSolutionForAi(conversation.task_id);
@@ -73,6 +91,21 @@ export async function POST(req: Request) {
       model: openai("gpt-4o"),
       system: buildSocraticSystemPrompt(taskContext),
       messages: await convertToModelMessages(messages),
+      onFinish: async ({ text }) => {
+        const aiContent = text.trim();
+        if (aiContent) {
+          await createMessage({
+            conversationId: conversation.id,
+            senderType: "ai",
+            senderId: null,
+            content: aiContent,
+          });
+
+          if (conversation.message_count + 2 >= MAX_MESSAGES) {
+            await submitConversation(supabase, conversation.id, user.id);
+          }
+        }
+      },
     });
 
     return createUIMessageStreamResponse({
@@ -80,6 +113,7 @@ export async function POST(req: Request) {
     });
   } catch (error) {
     console.error("[CHAT_API_ERROR]", error);
+
     return Response.json(
       { error: "Nastala neočekávaná chyba serveru" },
       { status: 500 },

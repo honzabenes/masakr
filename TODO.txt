@@ -1,0 +1,23 @@
+=== AI ===
+
+- Přidat chain of thoughts a strukturované myšlení
+- Ukládat a předzpracovávat efektivně fotky
+
+=== STUDENT ===
+
+- Povolit připnout finální zprávu s vyfoceným řešením po dosažení maximálního počtu zpráv
+- Přidat deadline datum, nejspíš místo data zadání
+- Filtrování chatů podle jména / čísla ... přidat úlohám čísla
+
+=== TEACHER ===
+
+- Možnost přidávat task
+    - číslo a název úlohy
+    - ročník .. možnost více ročníků
+    - zadání .. případně včetně obrázku
+    - deadline
+    - vzorové řešení .. ideálně jako fotka, následně zpracování do latexu a možnost úpravy .. integrovaný editor
+    - nahlížení do chatů
+    - feedback pro studenta
+        - následně se studentovi musí opět ukázat možnost poslat jednu zprávu
+        - přidat stav finished, který se nastaví až poté, co učitel úkol označí za vyřešený

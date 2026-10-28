@@ -8,6 +8,7 @@ import type { ConversationStatus } from "@/types";
 
 export interface ChatInputAreaProps {
   status: ConversationStatus;
+  isLimitReached?: boolean;
   input: string;
   onInputChange: (value: string) => void;
   onSubmit: (text: string, files?: FileList) => Promise<void>;
@@ -16,6 +17,7 @@ export interface ChatInputAreaProps {
 
 export default function ChatInputArea({
   status,
+  isLimitReached = false,
   input,
   onInputChange,
   onSubmit,
@@ -95,14 +97,21 @@ export default function ChatInputArea({
     }
   };
 
-  const isActive = status === "not_started" || status === "in_progress";
+  const isActive =
+    (status === "not_started" || status === "in_progress") && !isLimitReached;
 
   return (
     <div className="p-2 bg-card shrink-0">
       {!isActive ? (
         <div className="p-4 md:p-6 text-center text-sm md:text-base text-muted-foreground bg-muted/50 rounded-2xl border border-dashed border-border/60">
-          Úkol byl odevzdán a{" "}
-          {status === "submitted" ? "čeká na hodnocení." : "ohodnocen."}
+          {isLimitReached && status !== "graded" ? (
+            "Dosáhl jsi maximálního počtu zpráv pro tuto úlohu. Učitel se na tvé řešení brzy podívá."
+          ) : (
+            <>
+              Úkol byl odevzdán a{" "}
+              {status === "submitted" ? "čeká na hodnocení." : "ohodnocen."}
+            </>
+          )}
         </div>
       ) : (
         <form

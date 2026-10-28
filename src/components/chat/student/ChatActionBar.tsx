@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CheckCircle } from "lucide-react";
-
+import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ConversationStatus } from "@/types";
 
@@ -8,13 +7,14 @@ export interface ChatActionBarProps {
   status: ConversationStatus;
   taskTitle?: string;
   onSubmit?: () => void;
+  isSubmittingTask?: boolean;
 }
-
 
 export default function ChatActionBar({
   status,
   taskTitle,
   onSubmit,
+  isSubmittingTask = false,
 }: ChatActionBarProps) {
   const isActive = status === "not_started" || status === "in_progress";
 
@@ -38,10 +38,14 @@ export default function ChatActionBar({
       <Button
         variant="ghost"
         className="shrink-0 px-2 sm:px-4 text-primary hover:text-primary"
-        disabled={!isActive}
+        disabled={!isActive || isSubmittingTask}
         onClick={onSubmit}
       >
-        <CheckCircle className="w-4 h-4 mr-0 sm:mr-2" />
+        {isSubmittingTask ? (
+          <Loader2 className="w-4 h-4 mr-0 sm:mr-2 animate-spin" />
+        ) : (
+          <CheckCircle className="w-4 h-4 mr-0 sm:mr-2" />
+        )}
         <span className="hidden sm:inline">
           {isActive ? "Odevzdat" : "Odevzdáno"}
         </span>
