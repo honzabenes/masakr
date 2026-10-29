@@ -12,29 +12,17 @@
 
 === TEACHER ===
 
-- Možnost přidávat task
-    - číslo a název úlohy
-    - ročník .. možnost více ročníků
-    - zadání .. případně včetně obrázku
-    - deadline
-    - vzorové řešení .. ideálně jako fotka, následně zpracování do latexu a možnost úpravy .. integrovaný editor
+- Nastavit automatické publikování v db !!!!!!!
+
 - Nahlížení do chatů
 - Feedback pro studenta
     - následně se studentovi musí opět ukázat možnost poslat jednu zprávu
     - přidat stav finished, který se nastaví až poté, co učitel úkol označí za vyřešený
 
 
+=== TODO ===
+CHECK
 
-=== PROMPT ===
-
-Pár upřesnění:
-- Je potřeba z projektu zcela odstranit možnost graded a zanechat pouze ty dvě nové
-- Průběh úkolu je následující:
-    - Student komunikuje s chatbotem
-    - Při zprávě, kde by už odpověď chatbota přesáhla limit zpráv v chatu už AI neodpovídá
-    - Úkol se nahlásí jako odevzdaný a učitel bude reagovat
-    - Pokud zareaguje, tak se studentovi otevře možnost odpovědi a úkol se opět označí za odevzdaný
-    - Takto se to bude opakovat, dokud učitel úkol neuzavře
-
-Nyní pojďme připravit databázi a všechna místa v kódu, kde je potřeba změna. Sepiš mi sql příkaz do databáze a najdi všechna místa v kódu, kde je potřeba provést změnu.
-Nesepisuj celý kód, vždy mi jen řekni na jakých řádcích v jakém souboru je potřeba udělat změnu a pošli mi pouze tu část kódu, která se mění.
+services/tasks
+actions/tasks
+api/teacher/route
