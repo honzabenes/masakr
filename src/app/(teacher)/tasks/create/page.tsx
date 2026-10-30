@@ -1,4 +1,4 @@
-import CreateTaskForm from "@/components/tasks/create/CreateTaskForm";
+import CreateTaskForm from "@/components/dashboards/teacher/tasks/create/CreateTaskForm";
 
 export default function CreateTaskPage() {
   return <CreateTaskForm />;

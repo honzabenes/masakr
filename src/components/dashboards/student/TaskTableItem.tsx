@@ -36,7 +36,7 @@ export default function TaskTableItem({
 
   return (
     <Link href={`/task/${id}`} className="block">
-      <div className="flex flex-col items-center gap-1 justify-between px-6 py-4 border rounded-md cursor-pointer my-4 hover:bg-accent transition-colors">
+      <div className="flex flex-col items-center gap-1 justify-between px-6 py-4 border rounded-md cursor-pointer my-2 hover:bg-accent transition-colors">
         <div className="flex w-full items-center justify-between">
           <h3 className="font-medium">{title}</h3>
           <span className="text-sm text-muted-foreground">{lastEditDate}</span>

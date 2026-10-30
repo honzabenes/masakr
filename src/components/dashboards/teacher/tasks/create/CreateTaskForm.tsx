@@ -54,7 +54,7 @@ export default function CreateTaskForm() {
           <Button
             type="submit"
             disabled={isPending || isScanningOcr}
-            className="py-6 px-12"
+            className="py-6 px-4"
           >
             {isPending ? (
               <>
