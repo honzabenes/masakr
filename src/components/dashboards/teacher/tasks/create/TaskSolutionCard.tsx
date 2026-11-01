@@ -4,18 +4,71 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import { Wand2, Loader2, X, AlertTriangle, Eye, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import LatexPreview from "./LatexPreview";
 import { compressImageToBase64, validateImageFile } from "@/lib/utils/image";
 import { cn } from "@/lib/utils";
 
-const LATEX_SNIPPETS = [
-  { label: "Zlomek", snippet: "\\frac{a}{b}" },
-  { label: "Odmocnina", snippet: "\\sqrt{x}" },
-  { label: "Mocnina", snippet: "x^{2}" },
-  { label: "Násobení", snippet: "\\cdot " },
-  { label: "Rovnice (blok)", snippet: "\n$$\n\n$$\n" },
+interface LatexSnippetItem {
+  label: string;
+  snippet: string;
+  cursorOffset?: number;
+  visual: React.ReactNode;
+}
+
+const LATEX_SNIPPETS: LatexSnippetItem[] = [
+  {
+    label: "Rovnice v textu (inline)",
+    snippet: "$$",
+    cursorOffset: 1,
+    visual: (
+      <span className="font-mono text-xs font-semibold tracking-tight">
+        $𝑥$
+      </span>
+    ),
+  },
+  {
+    label: "Rovnice na samostatný řádek (blok)",
+    snippet: "\n$$\n\n$$\n",
+    cursorOffset: 4,
+    visual: (
+      <span className="font-mono text-xs font-semibold tracking-tight">
+        $$𝑥$$
+      </span>
+    ),
+  },
+  {
+    label: "Zlomek",
+    snippet: "\\frac{a}{b}",
+    cursorOffset: 6,
+    visual: (
+      <span className="inline-flex flex-col items-center leading-none text-[10px] font-serif">
+        <span className="border-b border-current px-0.5">a</span>
+        <span>b</span>
+      </span>
+    ),
+  },
+  {
+    label: "Odmocnina",
+    snippet: "\\sqrt{x}",
+    cursorOffset: 6,
+    visual: <span className="font-serif text-xs font-semibold">√𝑥</span>,
+  },
+  {
+    label: "Mocnina",
+    snippet: "x^{2}",
+    cursorOffset: 3,
+    visual: (
+      <span className="font-serif text-xs font-semibold">
+        𝑥<sup className="text-[9px]">2</sup>
+      </span>
+    ),
+  },
+  {
+    label: "Násobení (tečka)",
+    snippet: "\\cdot ",
+    visual: <span className="font-serif text-xs font-semibold">𝑎·𝑏</span>,
+  },
 ];
 
 interface TaskSolutionCardProps {
@@ -116,24 +169,27 @@ export default function TaskSolutionCard({
     if (solutionFileInputRef.current) solutionFileInputRef.current.value = "";
   };
 
-  const insertLatexSnippet = (snippet: string) => {
+  const insertLatexSnippet = (item: LatexSnippetItem) => {
     const textarea = solutionTextareaRef.current;
     if (!textarea) {
-      setSolutionText((prev) => prev + snippet);
+      setSolutionText((prev) => prev + item.snippet);
       return;
     }
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const updated =
-      solutionText.substring(0, start) + snippet + solutionText.substring(end);
+      solutionText.substring(0, start) +
+      item.snippet +
+      solutionText.substring(end);
 
     setSolutionText(updated);
     setEditorTab("write");
 
     requestAnimationFrame(() => {
       textarea.focus();
-      const cursorPosition = start + snippet.length;
+      const offset = item.cursorOffset ?? item.snippet.length;
+      const cursorPosition = start + offset;
       textarea.setSelectionRange(cursorPosition, cursorPosition);
     });
   };
@@ -171,7 +227,7 @@ export default function TaskSolutionCard({
             "w-full p-6 rounded-xl border border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center text-center gap-1.5 select-none",
             isScanningOcr
               ? "opacity-70 cursor-not-allowed"
-              : "cursor-pointer hover:bg-primary/10 hover:border-primary/60",
+              : "hover:bg-primary/10 hover:border-primary/60",
           )}
         >
           {isScanningOcr ? (
@@ -214,7 +270,7 @@ export default function TaskSolutionCard({
                 type="button"
                 onClick={clearSolutionImage}
                 aria-label="Odstranit fotku řešení"
-                className="absolute -top-2 -right-2 rounded-full p-1 bg-card border border-border shadow-xs hover:bg-muted cursor-pointer"
+                className="absolute -top-2 -right-2 rounded-full p-1 bg-card border border-border shadow-xs hover:bg-muted"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -242,7 +298,7 @@ export default function TaskSolutionCard({
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label htmlFor="solution_text" className="text-sm font-medium">
-              Strukturované vzorové řešení (Markdown / LaTeX)
+              LaTeX editor
             </label>
 
             <div className="flex items-center gap-1 bg-muted p-1 rounded-md">
@@ -250,7 +306,7 @@ export default function TaskSolutionCard({
                 type="button"
                 onClick={() => setEditorTab("write")}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium cursor-pointer",
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium",
                   editorTab === "write"
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground",
@@ -263,7 +319,7 @@ export default function TaskSolutionCard({
                 type="button"
                 onClick={() => setEditorTab("preview")}
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium cursor-pointer",
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium",
                   editorTab === "preview"
                     ? "bg-card text-foreground shadow-xs"
                     : "text-muted-foreground hover:text-foreground",
@@ -275,20 +331,20 @@ export default function TaskSolutionCard({
             </div>
           </div>
 
-          {/* LATEX BUTTONS */}
+          {/* GRAFICKÁ TLAČÍTKA PRO LATEX */}
           <div className="flex flex-wrap items-center gap-1.5 py-1">
-            <span className="text-xs text-muted-foreground mr-1">
-              Vložit LaTeX:
-            </span>
             {LATEX_SNIPPETS.map((item) => (
               <Button
                 key={item.label}
                 type="button"
                 variant="outline"
-                size="xs"
-                onClick={() => insertLatexSnippet(item.snippet)}
+                size="sm"
+                title={item.label}
+                aria-label={item.label}
+                onClick={() => insertLatexSnippet(item)}
+                className="h-8 min-w-9 px-2.5 text-foreground hover:border-primary/50 hover:text-primary"
               >
-                {item.label}
+                {item.visual}
               </Button>
             ))}
           </div>
@@ -311,17 +367,19 @@ export default function TaskSolutionCard({
           {editorTab === "preview" && <LatexPreview content={solutionText} />}
         </div>
 
-        {/* NOTES FOR AI */}
+        {/* PEDAGOGICKÉ POZNÁMKY PRO AI (TEXTAREA) */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="pedagogical_notes" className="text-sm font-medium">
             Pedagogické poznámky pro AI lektora (volitelné)
           </label>
-          <Input
+          <textarea
             id="pedagogical_notes"
             name="pedagogical_notes"
+            rows={3}
             value={pedagogicalNotes}
             onChange={(e) => setPedagogicalNotes(e.target.value)}
             placeholder="Např. Děti často zapomínají převést minuty na hodiny. Naveď je nejprve na sjednocení jednotek."
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
       </CardContent>

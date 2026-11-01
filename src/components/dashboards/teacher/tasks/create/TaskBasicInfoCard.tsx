@@ -115,7 +115,7 @@ export default function TaskBasicInfoCard({
                 <label
                   key={grade.value}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium cursor-pointer select-none",
+                    "flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium select-none",
                     isSelected
                       ? "bg-primary text-primary-foreground border-primary shadow-xs"
                       : "bg-background text-foreground border-border hover:bg-accent",
@@ -151,7 +151,7 @@ export default function TaskBasicInfoCard({
               type="button"
               onClick={() => setPublishMode("immediate")}
               className={cn(
-                "px-4 py-2 rounded-md border text-sm font-medium cursor-pointer",
+                "px-4 py-2 rounded-md border text-sm font-medium",
                 publishMode === "immediate"
                   ? "bg-primary text-primary-foreground border-primary shadow-xs"
                   : "bg-background text-foreground border-border hover:bg-accent",
@@ -163,7 +163,7 @@ export default function TaskBasicInfoCard({
               type="button"
               onClick={() => setPublishMode("scheduled")}
               className={cn(
-                "px-4 py-2 rounded-md border text-sm font-medium cursor-pointer",
+                "px-4 py-2 rounded-md border text-sm font-medium",
                 publishMode === "scheduled"
                   ? "bg-primary text-primary-foreground border-primary shadow-xs"
                   : "bg-background text-foreground border-border hover:bg-accent",
@@ -253,7 +253,7 @@ export default function TaskBasicInfoCard({
                 type="button"
                 onClick={clearTaskImage}
                 aria-label="Odstranit obrázek zadání"
-                className="absolute -top-2 -right-2 rounded-full p-1 bg-card border border-border shadow-xs hover:bg-muted cursor-pointer"
+                className="absolute -top-2 -right-2 rounded-full p-1 bg-card border border-border shadow-xs hover:bg-muted"
               >
                 <X className="h-3.5 w-3.5 text-foreground" />
               </button>

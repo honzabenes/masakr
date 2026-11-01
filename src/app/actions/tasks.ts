@@ -37,6 +37,15 @@ const CreateTaskSchema = z.object({
       return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
     }),
   isPublished: z.boolean(),
+  publishMode: z.enum(["immediate", "scheduled"]).default("immediate"),
+  publishAt: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val || val.trim() === "") return null;
+      const parsed = new Date(val);
+      return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+    }),
   solutionText: z.string().trim().min(5, "Vzorové řešení nesmí být prázdné."),
   pedagogicalNotes: z
     .string()
@@ -80,6 +89,8 @@ export async function createTaskAction(
     gradeLevels: formData.getAll("grade_levels"),
     dueDate: (formData.get("due_date") as string) ?? "",
     isPublished: formData.get("is_published") === "on",
+    publishMode: (formData.get("publish_mode") as string) ?? "immediate",
+    publishAt: (formData.get("publish_at") as string) ?? "",
     solutionText: formData.get("solution_text") ?? "",
     pedagogicalNotes: (formData.get("pedagogical_notes") as string) ?? "",
   };
@@ -89,6 +100,10 @@ export async function createTaskAction(
   if (!parsed.success) {
     const firstIssue = parsed.error.issues[0];
     return { error: firstIssue?.message ?? "Zkontrolujte vyplněné údaje." };
+  }
+
+  if (parsed.data.publishMode === "scheduled" && !parsed.data.publishAt) {
+    return { error: "Zadejte prosím datum a čas plánované publikace." };
   }
 
   const taskImageFile = formData.get("task_image") as File | null;

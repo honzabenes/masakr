@@ -39,6 +39,7 @@ export interface Database {
           due_date: string | null;
           task_number: number | null;
           grade_levels: string[];
+          publish_at: string | null;
         };
         Insert: {
           id?: string;
@@ -51,6 +52,7 @@ export interface Database {
           due_date?: string | null;
           task_number?: number | null;
           grade_levels?: string[];
+          publish_at?: string | null;
         };
         Update: {
           id?: string;
@@ -63,6 +65,7 @@ export interface Database {
           due_date?: string | null;
           task_number?: number | null;
           grade_levels?: string[];
+          publish_at?: string | null;
         };
         Relationships: [];
       };

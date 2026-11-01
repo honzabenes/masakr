@@ -49,7 +49,7 @@ export default function TeacherSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium",
                   isActive
-                    ? "bg-secondary shadow-xs"
+                    ? "bg-secondary"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
                 )}
               >
@@ -64,7 +64,7 @@ export default function TeacherSidebar() {
       {/* LOGOUT */}
       <div className="p-4 border-t border-border">
         <Button
-          variant="secondary"
+          variant="destructive"
           className="py-5 w-full justify-start"
           onClick={handleLogout}
           disabled={isPending}

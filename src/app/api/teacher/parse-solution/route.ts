@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -75,9 +75,11 @@ export async function POST(req: Request) {
       ? `Kontext zadání úlohy: "${taskDescription.trim()}".\n\n`
       : "";
 
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model: openai("gpt-4o"),
-      schema: SolutionParseSchema,
+      output: Output.object({
+        schema: SolutionParseSchema,
+      }),
       temperature: 0.1,
       messages: [
         {
@@ -102,7 +104,7 @@ Pravidla přepisu:
       ],
     });
 
-    return Response.json(object);
+    return Response.json(output);
   } catch (error) {
     console.error("[PARSE_SOLUTION_API_ERROR]", error);
     return Response.json(

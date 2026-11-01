@@ -20,6 +20,7 @@ export interface CreateTaskParams {
   gradeLevels: string[];
   dueDate: string | null;
   isPublished: boolean;
+  publishAt: string | null;
   solutionText: string;
   pedagogicalNotes: string | null;
   taskImageFile: File | null;
@@ -177,6 +178,7 @@ export async function createTaskWithSolution(
       is_published: params.isPublished,
       image_path: taskImagePath,
       created_by: params.teacherId,
+      publish_at: params.publishAt,
     })
     .select("id")
     .single();
