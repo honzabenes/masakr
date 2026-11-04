@@ -28,7 +28,6 @@ export default function StudentChatInterface({
   initialMessages,
 }: StudentChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [input, setInput] = useState("");
   const [currentStatus, setCurrentStatus] =
     useState<ConversationStatus>(initialStatus);
   const [isPendingSubmit, startSubmitTransition] = useTransition();
@@ -49,6 +48,10 @@ export default function StudentChatInterface({
         .filter((m) => m.sender_type === "teacher")
         .map((m) => m.id),
     );
+  }, [initialMessages]);
+
+  const messageTimestamps = useMemo(() => {
+    return new Map(initialMessages.map((m) => [m.id, m.created_at]));
   }, [initialMessages]);
 
   const formattedInitialMessages: UIMessage[] = useMemo(() => {
@@ -135,7 +138,8 @@ export default function StudentChatInterface({
       content: textContent,
       sender_type: senderType,
       image_url: imageUrl,
-      created_at: new Date().toISOString(),
+      // Použije historický čas z DB, nebo pro nově generované lokální čas
+      created_at: messageTimestamps.get(msg.id) ?? new Date().toISOString(),
     };
   };
 
@@ -178,8 +182,6 @@ export default function StudentChatInterface({
       <ChatInputArea
         status={effectiveStatus}
         isLimitReached={isLimitReached}
-        input={input}
-        onInputChange={setInput}
         onSubmit={handleSendMessage}
         isSubmitting={isSubmitting}
       />

@@ -9,10 +9,7 @@
 - Filtrování chatů podle jména / čísla ... přidat úlohám čísla
 - Možnost zrušit odevzdání
 
-
 === TEACHER ===
-
-- Nastavit automatické publikování v db !!!!!!!
 
 - Nahlížení do chatů
 - Feedback pro studenta
@@ -20,8 +17,9 @@
     - přidat stav finished, který se nastaví až poté, co učitel úkol označí za vyřešený
 
 
-=== PROMPT ===
+=== ISSUES ===
 
-Feedback pro tvá předchozí doporučení:
-  - zod string().uuid() je deprecated, využívám tedy jen .uuid()
-  - middleware.ts je deprecated, má se používat proxy.ts
+Při kompilaci:
+    src/components/chat/student/StudentChatInterface.tsx(181,9): error TS2322: Type '{ status: ConversationStatus; isLimitReached: boolean; input: string; onInputChange: Dispatch<SetStateAction<string>>; onSubmit: (text: string, files?: FileList | undefined) => Promise<...>; isSubmitting: boolean; }' is not assignable to type 'IntrinsicAttributes & ChatInputAreaProps'.
+    Property 'input' does not exist on type 'IntrinsicAttributes & ChatInputAreaProps'.
+    Failed to type check.
