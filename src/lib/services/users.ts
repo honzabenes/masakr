@@ -1,8 +1,30 @@
+import { cache } from "react";
+import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import type { UserRole } from "@/types";
 
 type AppSupabaseClient = SupabaseClient<Database>;
+
+export const getCurrentUserProfile = cache(async () => {
+  const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) return null;
+
+  const { data: profile, error: profileError } = await supabase
+    .from("users")
+    .select("id, role, grade_level, nickname")
+    .eq("id", authData.user.id)
+    .single();
+
+  if (profileError) {
+    throw new Error(
+      `Nepodařilo se načíst profil uživatele: ${profileError.message}`,
+    );
+  }
+
+  return profile;
+});
 
 export async function getUserRole(
   supabase: AppSupabaseClient,

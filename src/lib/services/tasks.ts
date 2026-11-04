@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -148,24 +150,18 @@ export async function createTaskWithSolution(
   supabase: AppSupabaseClient,
   params: CreateTaskParams,
 ): Promise<string> {
-  let taskImagePath: string | null = null;
-  let solutionImagePath: string | null = null;
-
-  if (params.taskImageFile && params.taskImageFile.size > 0) {
-    taskImagePath = await uploadStorageFile(
-      supabase,
-      "task-images",
-      params.taskImageFile,
-    );
-  }
-
-  if (params.solutionImageFile && params.solutionImageFile.size > 0) {
-    solutionImagePath = await uploadStorageFile(
-      supabase,
-      "teacher-solutions",
-      params.solutionImageFile,
-    );
-  }
+  const [taskImagePath, solutionImagePath] = await Promise.all([
+    params.taskImageFile && params.taskImageFile.size > 0
+      ? uploadStorageFile(supabase, "task-images", params.taskImageFile)
+      : Promise.resolve(null),
+    params.solutionImageFile && params.solutionImageFile.size > 0
+      ? uploadStorageFile(
+          supabase,
+          "teacher-solutions",
+          params.solutionImageFile,
+        )
+      : Promise.resolve(null),
+  ]);
 
   const { data: createdTask, error: taskError } = await supabase
     .from("tasks")
@@ -183,13 +179,19 @@ export async function createTaskWithSolution(
     .select("id")
     .single();
 
+  const cleanupUploadedFiles = async () => {
+    await Promise.allSettled([
+      taskImagePath
+        ? supabase.storage.from("task-images").remove([taskImagePath])
+        : Promise.resolve(),
+      solutionImagePath
+        ? supabase.storage.from("teacher-solutions").remove([solutionImagePath])
+        : Promise.resolve(),
+    ]);
+  };
+
   if (taskError || !createdTask) {
-    if (taskImagePath)
-      await supabase.storage.from("task-images").remove([taskImagePath]);
-    if (solutionImagePath)
-      await supabase.storage
-        .from("teacher-solutions")
-        .remove([solutionImagePath]);
+    await cleanupUploadedFiles();
     throw new Error(`Nepodařilo se uložit zadání úlohy: ${taskError?.message}`);
   }
 
@@ -203,13 +205,10 @@ export async function createTaskWithSolution(
     });
 
   if (solutionError) {
-    await supabase.from("tasks").delete().eq("id", createdTask.id);
-    if (taskImagePath)
-      await supabase.storage.from("task-images").remove([taskImagePath]);
-    if (solutionImagePath)
-      await supabase.storage
-        .from("teacher-solutions")
-        .remove([solutionImagePath]);
+    await Promise.allSettled([
+      supabase.from("tasks").delete().eq("id", createdTask.id),
+      cleanupUploadedFiles(),
+    ]);
     throw new Error(
       `Nepodařilo se uložit vzorové řešení: ${solutionError.message}`,
     );

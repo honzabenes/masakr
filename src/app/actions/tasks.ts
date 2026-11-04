@@ -7,9 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireCurrentUser } from "@/lib/services/auth";
 import { getUserRole } from "@/lib/services/users";
 import { createTaskWithSolution } from "@/lib/services/tasks";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+import { validateImageFile } from "@/lib/utils/image";
 
 const CreateTaskSchema = z.object({
   title: z
@@ -36,7 +34,6 @@ const CreateTaskSchema = z.object({
       const parsed = new Date(val);
       return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
     }),
-  isPublished: z.boolean(),
   publishMode: z.enum(["immediate", "scheduled"]).default("immediate"),
   publishAt: z
     .string()
@@ -52,20 +49,6 @@ const CreateTaskSchema = z.object({
     .optional()
     .transform((val) => (val && val.trim() !== "" ? val.trim() : null)),
 });
-
-function validateOptionalImage(
-  file: File | null,
-  label: string,
-): string | null {
-  if (!file || file.size === 0) return null;
-  if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    return `${label}: Povolené jsou pouze formáty JPG, PNG a WEBP.`;
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    return `${label}: Maximální velikost souboru je 5 MB.`;
-  }
-  return null;
-}
 
 export interface CreateTaskActionState {
   error?: string;
@@ -88,7 +71,6 @@ export async function createTaskAction(
     description: formData.get("description") ?? "",
     gradeLevels: formData.getAll("grade_levels"),
     dueDate: (formData.get("due_date") as string) ?? "",
-    isPublished: formData.get("is_published") === "on",
     publishMode: (formData.get("publish_mode") as string) ?? "immediate",
     publishAt: (formData.get("publish_at") as string) ?? "",
     solutionText: formData.get("solution_text") ?? "",
@@ -102,25 +84,42 @@ export async function createTaskAction(
     return { error: firstIssue?.message ?? "Zkontrolujte vyplněné údaje." };
   }
 
-  if (parsed.data.publishMode === "scheduled" && !parsed.data.publishAt) {
-    return { error: "Zadejte prosím datum a čas plánované publikace." };
+  if (parsed.data.publishMode === "scheduled") {
+    if (!parsed.data.publishAt) {
+      return { error: "Zadejte prosím datum a čas plánované publikace." };
+    }
+    if (new Date(parsed.data.publishAt).getTime() <= Date.now()) {
+      return { error: "Čas plánované publikace musí být v budoucnosti." };
+    }
   }
 
   const taskImageFile = formData.get("task_image") as File | null;
   const solutionImageFile = formData.get("solution_image") as File | null;
 
-  const taskImgError = validateOptionalImage(taskImageFile, "Obrázek zadání");
-  if (taskImgError) return { error: taskImgError };
+  if (taskImageFile && taskImageFile.size > 0) {
+    const taskImgError = validateImageFile(taskImageFile, "Obrázek zadání");
+    if (taskImgError) return { error: taskImgError };
+  }
 
-  const solImgError = validateOptionalImage(
-    solutionImageFile,
-    "Fotka vzorového řešení",
-  );
-  if (solImgError) return { error: solImgError };
+  if (solutionImageFile && solutionImageFile.size > 0) {
+    const solImgError = validateImageFile(
+      solutionImageFile,
+      "Fotka vzorového řešení",
+    );
+    if (solImgError) return { error: solImgError };
+  }
+
+  const isImmediate = parsed.data.publishMode === "immediate";
+  const finalIsPublished = isImmediate;
+  const finalPublishAt = isImmediate
+    ? new Date().toISOString()
+    : parsed.data.publishAt;
 
   try {
     await createTaskWithSolution(supabase, {
       ...parsed.data,
+      isPublished: finalIsPublished,
+      publishAt: finalPublishAt,
       taskImageFile:
         taskImageFile && taskImageFile.size > 0 ? taskImageFile : null,
       solutionImageFile:
@@ -132,10 +131,7 @@ export async function createTaskAction(
   } catch (err) {
     console.error("[CREATE_TASK_ACTION_ERROR]", err);
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Nastala chyba při ukládání úlohy do databáze.",
+      error: "Nastala chyba při ukládání úlohy. Zkuste to prosím znovu.",
     };
   }
 

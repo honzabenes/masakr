@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export default function AdminChatInterface() {
+export default function TeacherChatInterface() {
   return (
     <div className="p-4 border border-border rounded-lg bg-card">
       Admin Chat Interface Placeholder

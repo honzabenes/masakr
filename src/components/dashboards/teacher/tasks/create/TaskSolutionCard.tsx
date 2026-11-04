@@ -1,13 +1,22 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Wand2, Loader2, X, AlertTriangle, Eye, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import LatexPreview from "./LatexPreview";
 import { compressImageToBase64, validateImageFile } from "@/lib/utils/image";
 import { cn } from "@/lib/utils";
+
+const LatexPreview = dynamic(() => import("./LatexPreview"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-55 w-full rounded-md border border-border bg-muted/20 p-4 text-sm flex items-center justify-center text-muted-foreground">
+      Načítám matematický náhled...
+    </div>
+  ),
+});
 
 interface LatexSnippetItem {
   label: string;
@@ -94,6 +103,15 @@ export default function TaskSolutionCard({
 
   const solutionFileInputRef = useRef<HTMLInputElement>(null);
   const solutionTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Záchrana před Memory Leakem při změně fotky nebo opuštění stránky
+  useEffect(() => {
+    return () => {
+      if (solutionImagePreview) {
+        URL.revokeObjectURL(solutionImagePreview);
+      }
+    };
+  }, [solutionImagePreview]);
 
   const handleSolutionImageChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -254,7 +272,7 @@ export default function TaskSolutionCard({
           )}
         </div>
 
-        {/* IMAGE PREVIEW AND WARNINGS */}
+        {/* NÁHLED FOTKY ŘEŠENÍ A VAROVÁNÍ ČITELNOSTI */}
         {solutionImagePreview && (
           <div className="flex flex-col sm:flex-row items-start gap-4 p-3 rounded-lg border bg-muted/20">
             <div className="relative shrink-0">
@@ -298,7 +316,7 @@ export default function TaskSolutionCard({
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <label htmlFor="solution_text" className="text-sm font-medium">
-              LaTeX editor
+              Strukturované vzorové řešení (Markdown / LaTeX)
             </label>
 
             <div className="flex items-center gap-1 bg-muted p-1 rounded-md">

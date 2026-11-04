@@ -73,16 +73,22 @@ export async function createConversation(
     .from("conversations")
     .upsert(
       { task_id: taskId, user_id: userId, status },
-      { onConflict: "task_id,user_id" },
+      { onConflict: "task_id,user_id", ignoreDuplicates: true },
     )
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     throw new Error(`Nepodařilo se založit novou konverzaci: ${error.message}`);
   }
 
-  return data;
+  if (data) return data;
+
+  const existing = await getConversation(supabase, taskId, userId);
+  if (!existing) {
+    throw new Error("Konverzaci se nepodařilo načíst.");
+  }
+  return existing;
 }
 
 export async function submitConversation(

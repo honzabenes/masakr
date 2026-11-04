@@ -1,37 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
 import TaskTable from "@/components/dashboards/student/TaskTable";
-import { requireCurrentUser } from "@/lib/services/auth";
 import { getTasks } from "@/lib/services/tasks";
 import { getUserConversationSummaries } from "@/lib/services/conversations";
-import { getUserGradeLevel } from "@/lib/services/users";
+import { getCurrentUserProfile } from "@/lib/services/users";
+import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const user = await requireCurrentUser(supabase);
-
-  const gradeLevel = await getUserGradeLevel(supabase, user.id);
+  const profile = await getCurrentUserProfile();
+  if (!profile) redirect("/login");
 
   const [tasks, conversations] = await Promise.all([
-    getTasks(supabase, gradeLevel),
-    getUserConversationSummaries(supabase, user.id),
+    getTasks(await createClient(), profile.grade_level),
+    getUserConversationSummaries(await createClient(), profile.id),
   ]);
 
-  const tableData = tasks?.map((task) => {
-    const conv = conversations?.find((c) => c.task_id === task.id);
+  const tableData = tasks.map((task) => {
+    const conv = conversations.find((c) => c.task_id === task.id);
     const msgCount = conv?.message_count ?? 0;
-
-    const rawDate = new Date(conv?.updated_at || task.created_at);
-    const formattedDate = new Intl.DateTimeFormat("cs-CZ", {
-      day: "numeric",
-      month: "numeric",
-      year: "numeric",
-    }).format(rawDate);
+    const rawDate = new Date(conv?.updated_at ?? task.created_at);
 
     return {
       id: task.id,
       title: task.title,
-      status: conv?.status || "not_started",
-      lastEditDate: formattedDate,
+      status: conv?.status ?? "not_started",
+      lastEditDate: new Intl.DateTimeFormat("cs-CZ", {
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      }).format(rawDate),
       messageCount: msgCount,
     };
   });

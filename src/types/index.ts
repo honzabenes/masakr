@@ -1,4 +1,4 @@
-export type UserRole = "student" | "teacher" | "admin";
+export type UserRole = "student" | "teacher";
 export type SenderRole = "student" | "ai" | "teacher";
 
 export type ConversationStatus =

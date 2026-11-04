@@ -8,8 +8,7 @@ import ChatMessageBubble from "./ChatMessageBubble";
 import ChatInputArea from "./ChatInputArea";
 import { submitTaskAction } from "@/app/actions/conversations";
 import type { ConversationStatus, Message } from "@/types";
-
-const MAX_MESSAGES = 6;
+import { MAX_CHAT_MESSAGES } from "@/lib/constants/chat";
 
 export interface StudentChatInterfaceProps {
   taskId: string;
@@ -81,7 +80,8 @@ export default function StudentChatInterface({
 
   const isSubmitting = chatStatus === "submitted" || chatStatus === "streaming";
   const isLimitReached =
-    currentStatus !== "needs_revision" && messages.length >= MAX_MESSAGES - 1;
+    currentStatus !== "needs_revision" &&
+    messages.length >= MAX_CHAT_MESSAGES - 1;
 
   const effectiveStatus: ConversationStatus =
     isLimitReached && !isSubmitting && currentStatus !== "finished"
@@ -98,7 +98,7 @@ export default function StudentChatInterface({
   const handleSendMessage = async (text: string, files?: FileList) => {
     const willClose =
       currentStatus === "needs_revision" ||
-      messages.length + 1 >= MAX_MESSAGES - 1;
+      messages.length + 1 >= MAX_CHAT_MESSAGES - 1;
 
     await sendMessage({ text, ...(files ? { files } : {}) });
 

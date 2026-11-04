@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,14 @@ export default function TaskBasicInfoCard({
   const [publishMode, setPublishMode] = useState<PublishMode>("immediate");
   const [taskImagePreview, setTaskImagePreview] = useState<string | null>(null);
   const taskFileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (taskImagePreview) {
+        URL.revokeObjectURL(taskImagePreview);
+      }
+    };
+  }, [taskImagePreview]);
 
   const toggleGrade = (grade: string) => {
     setSelectedGrades((prev) => {

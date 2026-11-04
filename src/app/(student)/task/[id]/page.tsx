@@ -8,6 +8,7 @@ import {
   getConversation,
 } from "@/lib/services/conversations";
 import { getMessagesByConversationId } from "@/lib/services/messages";
+import { z } from "zod";
 
 interface TaskPageProps {
   params: Promise<{
@@ -17,10 +18,18 @@ interface TaskPageProps {
 
 export default async function TaskPage({ params }: TaskPageProps) {
   const { id } = await params;
-  const supabase = await createClient();
-  const user = await requireCurrentUser(supabase);
 
-  const task = await getTaskById(supabase, id);
+  if (!z.uuid().safeParse(id).success) {
+    notFound();
+  }
+
+  const supabase = await createClient();
+
+  const [user, task] = await Promise.all([
+    requireCurrentUser(supabase),
+    getTaskById(supabase, id),
+  ]);
+
   if (!task) notFound();
 
   let conversation = await getConversation(supabase, task.id, user.id);

@@ -27,7 +27,7 @@ export default function TeacherSidebar() {
     <aside className="w-64 shrink-0 border-r border-border bg-card flex flex-col h-dvh sticky top-0">
       {/* LOGO */}
       <div className="h-16 px-4 border-b border-border flex items-center justify-between shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/teacher-dashboard" className="flex items-center gap-2">
           <Image src="/LOGO.svg" alt="Masakr Logo" width={120} height={40} />
         </Link>
         <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">

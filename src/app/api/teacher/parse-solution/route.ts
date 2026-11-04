@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       : "";
 
     const { output } = await generateText({
-      model: openai("gpt-4o"),
+      model: openai("gpt-4o-2024-08-06"),
       output: Output.object({
         schema: SolutionParseSchema,
       }),
