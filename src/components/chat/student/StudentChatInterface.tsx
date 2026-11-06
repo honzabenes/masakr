@@ -138,7 +138,6 @@ export default function StudentChatInterface({
       content: textContent,
       sender_type: senderType,
       image_url: imageUrl,
-      // Použije historický čas z DB, nebo pro nově generované lokální čas
       created_at: messageTimestamps.get(msg.id) ?? new Date().toISOString(),
     };
   };
