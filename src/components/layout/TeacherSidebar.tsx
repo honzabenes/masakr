@@ -30,9 +30,6 @@ export default function TeacherSidebar() {
         <Link href="/teacher-dashboard" className="flex items-center gap-2">
           <Image src="/LOGO.svg" alt="Masakr Logo" width={120} height={40} />
         </Link>
-        <span className="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-primary/10 text-primary">
-          Učitel
-        </span>
       </div>
 
       {/* NAV */}
